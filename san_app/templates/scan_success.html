@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Scanned</title>
+</head>
+<body>
+<h1>Order Scanned!</h1>
+<p>Order ID: {{ order.order_id }}</p>
+<p>Amount: {{ order.total_amount }}</p>
+<p>Amount: {{ order.Delivered}}</p>
+<script>
+fetch("/api/scan/?order_id={{ order.order_id }}")
+  .then(response => response.json())
+  .then(data => {
+      console.log("✅ API called automatically:", data);
+      alert("Order status updated to Delivered!");
+  })
+  .catch(err => console.error("❌ API call failed:", err));
+</script></body>
+</html>
+44
