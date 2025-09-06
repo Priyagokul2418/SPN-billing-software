@@ -89,16 +89,24 @@ DATABASES = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  
+     "http://localhost:5174"
 ]
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    "192.168.1.11",
-    "192.168.1.5", 
-    "10.102.53.96" 
+    "10.205.166.96",
+    "10.251.118.96",
+    "192.168.1.20",
+    "testserver",
+    # "192.168.1.27",
+    # "192.168.1.5", 
+    # "110.251.118.96" 
 ]
 
+REST_FRAMEWORK = {
+    "DATETIME_FORMAT": "%d-%m-%Y %I:%M %p"  # 12-hour with AM/PM
+}
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True

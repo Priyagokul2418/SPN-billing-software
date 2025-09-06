@@ -28,7 +28,7 @@ from django.conf import settings
 import os
 
 # Correct path with the subfolder and exact filename
-font_path = os.path.join(settings.BASE_DIR, 'san_app', 'fonts', 'Noto_Sans_Tamil', 'NotoSansTamil-VariableFont_wdth,wght.ttf')
+font_path = os.path.join(settings.BASE_DIR, 'san_app', 'fonts', 'Noto_Sans_Tamil')
 
 # Debug: print the path
 print(f"Font path: {font_path}")
@@ -63,6 +63,8 @@ def send_otp_via_email(email):
         fail_silently=False,
     )
     return otp
+
+
 def generate_receipt_pdf(order):
     """Generate PDF receipt for an order in Tamil"""
     # Create receipts directory if not exists
@@ -214,15 +216,41 @@ def generate_receipt_pdf(order):
     doc.build(elements)
     return file_path
 
+# def generate_qr_code(order_instance, request=None):
+#     if request:
+#         qr_content = request.build_absolute_uri(
+#             f"/scan_auto/?order_id={order_instance.order_id}"
+#         )
+#     else:
+#         qr_content = f"http://127.0.0.1:8000/scan_auto/?order_id={order_instance.order_id}"
+
+#     qr = qrcode.make(qr_content)
+#     buffer = BytesIO()
+#     qr.save(buffer, format="PNG")
+#     buffer.seek(0)
+
+#     filename = f"order_{order_instance.order_id}.png"
+#     order_instance.qr_code.save(filename, File(buffer), save=True)
+#     print("🔍 QR CONTENT:", qr_content)
+
+
+#     return qr_content
+
+
+
 def generate_qr_code(order_instance, request=None):
     if request:
         qr_content = request.build_absolute_uri(
             f"/scan_auto/?order_id={order_instance.order_id}"
         )
     else:
-        qr_content = f"http://127.0.0.1:8000/scan_auto/?order_id={order_instance.order_id}"
+        qr_content = f"http://10.205.166.96:8000/scan_auto/?order_id={order_instance.order_id}"
+
+    # ✅ Debug print
+    print("🔍 QR CONTENT:", qr_content)
 
     qr = qrcode.make(qr_content)
+
     buffer = BytesIO()
     qr.save(buffer, format="PNG")
     buffer.seek(0)
@@ -231,3 +259,4 @@ def generate_qr_code(order_instance, request=None):
     order_instance.qr_code.save(filename, File(buffer), save=True)
 
     return qr_content
+

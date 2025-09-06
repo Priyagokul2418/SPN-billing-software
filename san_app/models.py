@@ -13,6 +13,7 @@ from django.core.files import File
 class User(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
+    mobile_no = models.CharField(max_length=10)
     username = models.EmailField(unique=True)
     password = models.CharField(max_length=255) 
     created_at = models.DateTimeField(auto_now_add=True)  
@@ -32,6 +33,7 @@ class User(models.Model):
         self.otp_created_at = timezone.now()
         self.save()
         return self.otp
+   
 
 
 # Customer model
@@ -133,7 +135,15 @@ class Product(models.Model):
 # Device model
 class Device(models.Model):
     device_id = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=255)
+    device_state=models.CharField(max_length=255)
+    id_verify = models.BooleanField(default=True)
     location = models.CharField(max_length=255)
+   
+    username = models.CharField(max_length=100, unique=True)
+    password = models.CharField(max_length=255)  # store hashed password
+
+
     created_by = models.ForeignKey(User, related_name='devices_created', on_delete=models.SET_NULL, null=True, blank=True)
     updated_by = models.ForeignKey(User, related_name='devices_updated', on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)  
@@ -145,12 +155,14 @@ class Device(models.Model):
 
     
 
+
+
 # Order model
 class Order(models.Model):
     PAYMENT_STATUS_CHOICES = [
         ('Paid', 'Paid'),
         ('Unpaid', 'Unpaid'),
-        ('Partially Paid', 'Partially Paid'),
+        ('Pending', 'Pending'),
 ]
     
     MEASUREMENT_CHOICES = [
@@ -176,12 +188,13 @@ class Order(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     category = models.CharField(max_length=255)
     measurement_type = models.CharField(max_length=20, choices=MEASUREMENT_CHOICES)
-    quantity = models.PositiveIntegerField(null=True, blank=True)
+    quantity = models.PositiveIntegerField(null=True, blank=True)   
     unit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     contact_no = models.CharField(max_length=20)
     delivery_address = models.TextField()
     qr_code = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    final_amount = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     pending_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -194,6 +207,9 @@ class Order(models.Model):
     delivery_status = models.CharField(max_length=10, choices=delivery_status_choices, default='Pending')
     exported_at = models.DateTimeField(auto_now_add=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
+    pass_no = models.IntegerField(max_length=255,null=True)
+    amount_per_pass = models.DecimalField(max_digits=10, decimal_places=2,null=True)
+    pass_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0,null=True)
     delivered_by = models.CharField(max_length=255, null=True, blank=True) 
     
     created_by = models.ForeignKey(User, related_name='orders_created', on_delete=models.SET_NULL, null=True, blank=True)
@@ -205,22 +221,37 @@ class Order(models.Model):
 
 
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)  # Save to get the order_id
 
+        if self.pass_no and self.amount_per_pass:
+            self.pass_amount = self.pass_no * self.amount_per_pass
+        else:
+            self.pass_amount = 0
+        
+        if self.pass_no is not None and self.amount_per_pass is not None:
+            self.pass_amount = self.pass_no * self.amount_per_pass
+        else:
+            self.pass_amount = 0
+
+        super().save(*args, **kwargs)  
         if not self.qr_code:
-            # ✅ THIS is the only correct content
-            qr_content = f"http://192.168.1.25:8000/scan_auto/?order_id={self.order_id}"
-            print("✅ QR Content to encode:", qr_content)  # Debug
+           
+            base_url = "http://10.205.166.96:8000/scan_auto/"
+            qr_content = f"{base_url}?order_id={self.order_id}&amount={self.total_amount}"
+            print("✅ QR Content to encode:", qr_content) 
 
+           
             qr = qrcode.make(qr_content)
 
+            # Save QR as Image
             buffer = BytesIO()
             qr.save(buffer, format="PNG")
             filename = f"order_{self.order_id}.png"
             self.qr_code.save(filename, File(buffer), save=False)
 
+            # Update only qr_code field
             super().save(update_fields=["qr_code"])
 
+    
     def __str__(self):
         return f"Order {self.id} - {self.customer.name}"
     
@@ -231,7 +262,12 @@ class ScanLog(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="scans")
     device_id = models.CharField(max_length=255)
     location = models.CharField(max_length=255)
+    delivery_address = models.CharField(max_length=255,null=True)
     scanned_at = models.DateTimeField(auto_now_add=True)
+    @property
+    def name(self):
+        return self.device.name if self.device else None
+    
 
 # Transaction model
 class Transaction(models.Model):

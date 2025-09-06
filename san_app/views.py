@@ -4,6 +4,108 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from .models import User,Customer,Product,Device,Order,Transaction
 from .serializers import UserSerializer,CustomerSerializer,ProductSerializer,DeviceSerializer,OrderSerializer,TransactionSerializer,LoginSerializer,ChangePasswordSerializer,ForgotPasswordSerializer,ResetPasswordSerializer
+from .serializers import OrderHistorySerializer
+from django.shortcuts import render
+# views.py
+from django.db.models import Sum, Q
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from datetime import date, timedelta
+from .models import Order, Transaction
+
+
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from django.db.models import Sum
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Customer, Order, Transaction
+
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from django.db.models import Sum
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Customer, Order, Transaction
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from django.db.models import Sum
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Customer, Order, Transaction
+
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from django.db.models import Sum
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Customer, Order, Transaction
+
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from django.db.models import Sum
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Customer, Order, Transaction
+
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from django.db.models import Sum
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from django.db.models import Sum
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Customer, Order, Transaction
+
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from django.db.models import Sum
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Customer, Order, Transaction
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from django.db.models import Sum
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Customer, Order, Transaction
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Sum, Count
+from datetime import datetime, timedelta
+from .models import Order, Transaction
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.db.models import Sum, Count
+from datetime import datetime, timedelta, date
+from .models import Order, Transaction
+
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.conf import settings
@@ -18,11 +120,93 @@ from django.utils import timezone
 from datetime import timedelta
 from .utils import generate_qr_code  
 import qrcode
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from django.utils.timezone import now
+from .models import Order
+from .serializers import OrderSerializer
+
+from .utils import send_otp_via_email
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.dateparse import parse_date
 from reportlab.lib.units import inch
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Device
+from .serializers import DeviceLoginSerializer, DeviceSerializer
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Device
+from .serializers import DeviceLoginSerializer, DeviceSerializer
+
+
+import csv
+from django.http import HttpResponse
+import csv
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+
+
+
+from django.http import HttpResponse
+from rest_framework.views import APIView
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from .models import Order
+from .utils import generate_qr_code  
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import os
+
+
+from django.urls import reverse
+
+from rest_framework.test import APIRequestFactory
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+from .models import ScanLog, Order
+from .serializers import ScanLogSerializer
+
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.db import transaction
+from .models import Order
+
+# views.py
+from decimal import Decimal
+
+from decimal import Decimal
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Customer, Order
+
+
+
+
+font_path = os.path.join(settings.BASE_DIR, "fonts", "DejaVuSans.ttf")
 
 
 
@@ -72,7 +256,7 @@ class LoginView(APIView):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # If you want, you can return a token here for authentication
+       
         return Response({
             "id": user.id,
             "name": user.name,
@@ -99,7 +283,6 @@ class ChangePasswordView(APIView):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-from .utils import send_otp_via_email
 
 class ForgotPasswordView(APIView):
     def post(self, request):
@@ -113,11 +296,9 @@ class ForgotPasswordView(APIView):
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         otp = user.generate_otp()
+        otp = send_otp_via_email(user.username)
 
-        # 🔥 Send OTP via email
-        otp = send_otp_via_email(user.username)   # username is email
-
-        # save OTP to user model
+       
         user.otp = otp
         user.otp_created_at = timezone.now()
         user.save()
@@ -144,7 +325,7 @@ class ResetPasswordView(APIView):
         if timezone.now() > user.otp_created_at + timedelta(minutes=10):
             return Response({"error": "OTP expired"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # ✅ Store password as plain text
+    
         user.password = new_password
         user.otp = None
         user.otp_created_at = None
@@ -189,9 +370,13 @@ class CustomerAPIView(APIView):
                 if end_date:
                     customers = customers.filter(created_at__date__lte=end_date)
 
+            # ✅ Order latest first
+            customers = customers.order_by("-created_at")
+
             serializer = CustomerSerializer(customers, many=True)
 
         return Response(serializer.data)
+
 
     def post(self, request):
         serializer = CustomerSerializer(data=request.data)
@@ -220,7 +405,7 @@ class ProductAPIView(APIView):
             product = get_object_or_404(Product, pk=pk)
             serializer = ProductSerializer(product)
         else:
-            products = Product.objects.all()
+            products = Product.objects.all().order_by("-id")  # latest first
             serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
 
@@ -274,115 +459,373 @@ class DeviceAPIView(APIView):
         device = get_object_or_404(Device, pk=pk)
         device.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
 
 
 
-def generate_receipt_pdf(order):
-    """Generate PDF receipt for an order in Tamil"""
-    # Create receipts directory if not exists
-    receipts_dir = os.path.join(settings.MEDIA_ROOT, 'receipts')
-    os.makedirs(receipts_dir, exist_ok=True)
-    
-    # PDF file path
-    file_path = os.path.join(receipts_dir, f'order_{order.order_id}.pdf')
-    
-    # Create PDF canvas
-    c = canvas.Canvas(file_path, pagesize=A4)
-    width, height = A4
-    
-    # ===== RECEIPT HEADER =====
-    # Shop name (Tamil)
-    c.setFont("Helvetica-Bold", 16)
-    c.drawCentredString(width/2, height-20*mm, "கேட் பாஸ் மரக்கடை")
-    c.setFont("Helvetica", 12)
-    c.drawCentredString(width/2, height-28*mm, "வாடிக்கையாளர் ரசீது")
-    
-    # ===== CUSTOMER DETAILS =====
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(20*mm, height-45*mm, "வாடிக்கையாளர் விவரங்கள்:")
-    c.setFont("Helvetica", 11)
-    
-    y_position = height-55*mm
-    details = [
-        f"பெயர்: {order.customer.name}",
-        f"முகவரி: {order.delivery_address}",
-        f"தொலைபேசி: {order.contact_no}",
-        f"ஆர்டர் எண்: {order.order_id}",
-        f"தேதி: {order.created_at.strftime('%d-%m-%Y %H:%M')}"
-    ]
-    
-    for detail in details:
-        c.drawString(25*mm, y_position, detail)
-        y_position -= 8*mm
-    
-    # ===== ORDER DETAILS =====
-    y_position -= 5*mm  # Add some space
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(20*mm, y_position, "ஆர்டர் விவரங்கள்:")
-    y_position -= 10*mm
-    
-    # Product details
-    c.setFont("Helvetica", 11)
-    c.drawString(25*mm, y_position, f"பொருள்: {order.product}")
-    y_position -= 8*mm
-    c.drawString(25*mm, y_position, f"வகை: {order.category}")
-    y_position -= 8*mm
-    
-    # Quantity/Unit with calculation
-    if order.measurement_type == 'Quantity':
-        item_line = f"அளவு: {order.quantity} x ₹{order.product.price} = ₹{order.quantity * order.product.price}"
-    else:
-        item_line = f"அளவு: {order.unit} x ₹{order.product.price} = ₹{float(order.unit) * float(order.product.price)}"
-    
-    c.drawString(25*mm, y_position, item_line)
-    y_position -= 15*mm
-    
-    # ===== PAYMENT DETAILS =====
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(20*mm, y_position, "கட்டண விவரங்கள்:")
-    y_position -= 10*mm
-    
-    c.setFont("Helvetica", 11)
-    payment_details = [
-        f"மொத்த தொகை: ₹{order.total_amount}",
-        f"தள்ளுபடி: ₹{order.discount}" if order.discount > 0 else None,
-        f"செலுத்திய தொகை: ₹{order.paid_amount}",
-        f"நிலுவை தொகை: ₹{order.pending_amount}",
-        f"கட்டண முறை: {order.get_payment_method_display()}"
-    ]
-    
-    for detail in payment_details:
-        if detail:  # Skip None values (like when no discount)
-            c.drawString(25*mm, y_position, detail)
-            y_position -= 8*mm
-    
-    # ===== QR CODE =====
-    if order.qr_code:
+
+class DeviceLoginView(APIView):
+    def post(self, request):
+        serializer = DeviceLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data["username"]
+            password = serializer.validated_data["password"]
+            device_id = serializer.validated_data.get("device_id")
+            id_verify = serializer.validated_data.get("id_verify", False)
+
+            if isinstance(id_verify, str):
+                id_verify = id_verify.lower() == "true"
+
+            try:
+                device = Device.objects.get(username=username)
+            except Device.DoesNotExist:
+                return Response({"error": "Invalid username"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if device.password != password:
+                return Response({"error": "Invalid password"}, status=status.HTTP_400_BAD_REQUEST)
+
+            if id_verify: 
+                if not device_id or device.device_id != device_id:
+                    return Response({"error": "Invalid device ID"}, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({
+                "message": "Login successful",
+                "device": DeviceSerializer(device).data
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Register only the stable Tamil font once (no variable fonts)
+font_path = r"C:\projects\SAN_project\san_app\fonts\Noto_Sans_Tamil\static\NotoSansTamil-Regular.ttf"
+pdfmetrics.registerFont(TTFont("NotoSansTamil", font_path))
+
+# Register DejaVuSans (if you want it, otherwise remove)
+dejavu_path = os.path.join(os.path.dirname(font_path), "..", "DejaVuSans.ttf")
+if os.path.exists(dejavu_path):
+    pdfmetrics.registerFont(TTFont("DejaVuSans", dejavu_path))
+
+# class ReceiptPDFView(APIView):
+#     def get(self, request, order_id, *args, **kwargs):
+#         order = Order.objects.get(order_id=order_id)
+#         qr_content = generate_qr_code(order, request)
+
+#         response = HttpResponse(content_type="application/pdf")
+#         response["Content-Disposition"] = f'inline; filename="order_{order.order_id}.pdf"'
+
+#         buffer = BytesIO()
+#         RECEIPT_WIDTH, RECEIPT_HEIGHT = 226, 400
+#         p = canvas.Canvas(buffer, pagesize=(RECEIPT_WIDTH, RECEIPT_HEIGHT))
+
+#         width, height = RECEIPT_WIDTH, RECEIPT_HEIGHT
+#         y = height - 30
+
+#         # Draw Tamil headers with font explicitly set
+#         p.setFont("NotoSansTamil", 12)
+#         p.drawCentredString(width / 2, y, "கேட் பாஸ்")  # Gate Pass in Tamil
+#         y -= 20
+
+#         p.setFont("NotoSansTamil", 10)
+#         p.drawCentredString(width / 2, y, "வாடிக்கையாளர் ரசீது")  # Customer Receipt
+#         y -= 30
+
+#         p.setFont("NotoSansTamil", 8)
+
+#         def line(label, value):
+#             nonlocal y
+#             p.setFont("NotoSansTamil", 8)  # Always set Tamil font before drawing
+#             p.drawString(20, y, f"{label}:")
+#             p.drawRightString(width - 20, y, str(value))
+#             y -= 12
+
+#         # Draw order details lines
+#         line("கட்டண வகை", order.payment_method)
+#         line("வாடிக்கையாளர் பெயர்", order.customer.name)
+#         line("நகரம்", order.customer.city if hasattr(order.customer, "city") else "-")
+#         line("பொருள்", order.product.product_name)
+#         line("வகை", order.category)
+#         line("அளவு", order.quantity or order.unit)
+#         line("மொத்தம்", f"₹{order.total_amount}")
+#         line("செலுத்தியது", f"₹{order.paid_amount}")
+#         line("நிலுவை", f"₹{order.pending_amount}")
+#         line("கட்டண நிலை", order.payment_status)
+#         line("ஆபரேட்டர்", order.created_by.username if order.created_by else "Admin")
+
+#         if order.qr_code:
+#             p.drawInlineImage(order.qr_code.path, width / 2 - 40, y - 100, 80, 80)
+#             y -= 110
+
+#         # Set Tamil font before final string
+#         p.setFont("NotoSansTamil", 8)
+#         p.drawString(20, y, "மேலாளர் கையொப்பம்")  # Manager Sign
+
+#         p.showPage()
+#         p.save()
+#         pdf = buffer.getvalue()
+#         buffer.close()
+#         response.write(pdf)
+
+#         return response
+
+
+
+class ReceiptPDFView(APIView):
+    def get(self, request, order_id, *args, **kwargs):
+        order = Order.objects.get(order_id=order_id)
+        qr_content = generate_qr_code(order, request)
+
+        response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = f'inline; filename="order_{order.order_id}.pdf"'
+
+        buffer = BytesIO()
+        RECEIPT_WIDTH, RECEIPT_HEIGHT = 226, 400
+        p = canvas.Canvas(buffer, pagesize=(RECEIPT_WIDTH, RECEIPT_HEIGHT))
+
+        width, height = RECEIPT_WIDTH, RECEIPT_HEIGHT
+        y = height - 30
+
+        # Draw English headers
+        p.setFont("Helvetica-Bold", 12)
+        p.drawCentredString(width / 2, y, "GATE PASS")
+        y -= 20
+
+        p.setFont("Helvetica", 10)
+        p.drawCentredString(width / 2, y, "CUSTOMER RECEIPT")
+        y -= 30
+
+        p.setFont("Helvetica", 8)
+
+        def line(label, value):
+            nonlocal y
+            p.setFont("Helvetica", 8)
+            p.drawString(20, y, f"{label}:")
+            p.drawRightString(width - 20, y, str(value))
+            y -= 12
+
+        # Draw order details lines in English
+        line("Payment Method", order.payment_method)
+        line("Customer Name", order.customer.name)
+        line("City", order.customer.city if hasattr(order.customer, "city") else "-")
+        line("Product", order.product.product_name)
+        line("Category", order.category)
+        line("Quantity/Unit", order.quantity or order.unit)
+        line("Total", f"{order.total_amount}")
+        line("Paid", f"{order.paid_amount}")
+        line("Pending", f"{order.pending_amount}")
+        line("Payment Status", order.payment_status)
+        line("Operator", order.created_by.username if order.created_by else "Admin")
+
+        if order.qr_code:
+            p.drawInlineImage(order.qr_code.path, width / 2 - 40, y - 100, 80, 80)
+            y -= 110
+
+        p.setFont("Helvetica", 8)
+        p.drawString(20, y, "Manager Sign")
+
+        p.showPage()
+        p.save()
+        pdf = buffer.getvalue()
+        buffer.close()
+        response.write(pdf)
+
+        return response
+
+from decimal import Decimal
+from django.db import transaction as db_transaction
+from django.db.models import Sum
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Customer, Order, Transaction
+
+class PayNowAPIView(APIView):
+    def post(self, request, customer_id):
         try:
-            qr_path = order.qr_code.path
-            if os.path.exists(qr_path):
-                # Position QR code at bottom right
-                qr_size = 35*mm
-                qr_x = width - 20*mm - qr_size
-                qr_y = 20*mm
-                c.drawImage(qr_path, qr_x, qr_y, qr_size, qr_size)
-                
-                # Add text below QR code
-                c.setFont("Helvetica", 8)
-                c.drawCentredString(width - 20*mm - qr_size/2, 15*mm, "ஸ்கேன் செய்யவும்")
+            customer = Customer.objects.get(id=customer_id)
+        except Customer.DoesNotExist:
+            return Response({"message": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        pay_amount = request.data.get("pay_amount")
+        payment_method = request.data.get("payment_method", "Cash")
+
+        if not pay_amount:
+            return Response({"message": "Payment amount is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            pay_amount = Decimal(pay_amount)
         except:
-            pass
-    
-    # ===== FOOTER =====
-    c.setFont("Helvetica-Oblique", 9)
-    c.drawCentredString(width/2, 10*mm, "நன்றி! மீண்டும் வருக!")
-    
-    # Save PDF
-    c.showPage()
-    c.save()
-    
-    return file_path
+            return Response({"message": "Invalid payment amount"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if pay_amount <= 0:
+            return Response({"message": "Payment amount must be greater than zero"}, status=status.HTTP_400_BAD_REQUEST)
+
+        with db_transaction.atomic():
+            # Step 1: sum all pending amounts BEFORE applying payment
+            total_pending_before = Order.objects.filter(customer=customer).aggregate(
+                total_pending=Sum("pending_amount")
+            )["total_pending"] or Decimal("0.00")
+
+            # Step 2: apply payment to orders sequentially
+            orders = Order.objects.filter(customer=customer).exclude(payment_status="Paid").order_by("created_at")
+
+            for order in orders:
+                if pay_amount <= 0:
+                    break
+
+                final_amount = Decimal(order.final_amount)
+                existing_paid = Decimal(order.paid_amount)
+                pending = final_amount - existing_paid
+
+                if pay_amount >= pending:
+                    # Full payment
+                    payment_for_order = pending
+                    order.paid_amount = existing_paid + pending
+                    order.pending_amount = Decimal("0.00")
+                    order.payment_status = "Paid"
+                    pay_amount -= pending
+                else:
+                    # Partial payment
+                    payment_for_order = pay_amount
+                    order.paid_amount = existing_paid + pay_amount
+                    order.pending_amount = final_amount - order.paid_amount
+                    order.payment_status = "Pending"
+                    pay_amount = Decimal("0.00")
+
+                # Quantize amounts
+                order.paid_amount = order.paid_amount.quantize(Decimal("0.01"))
+                order.pending_amount = order.pending_amount.quantize(Decimal("0.01"))
+                order.save()
+
+                # Create transaction
+                Transaction.objects.create(
+                    order=order,
+                    customer=customer,
+                    total_amount=final_amount.quantize(Decimal("0.01")),
+                    paid_amount=payment_for_order.quantize(Decimal("0.01")),
+                    pending_amount=order.pending_amount,
+                    payment_method=payment_method
+                )
+
+            # Step 3: remaining pending = total pending before - original payment
+            remaining_pending = total_pending_before - Decimal(request.data.get("pay_amount", 0))
+            remaining_pending = max(remaining_pending, Decimal("0.00"))  # avoid negative
+            remaining_pending = remaining_pending.quantize(Decimal("0.01"))
+
+        return Response({
+            "message": "Payment processed successfully",
+            "customer_id": customer.id,
+            "remaining_pending": str(remaining_pending)
+        }, status=status.HTTP_200_OK)
+
+
+class ScanLogAPIView(APIView):
+    """
+    API to handle ScanLog
+    Supports GET, POST, PUT, DELETE
+    """
+
+    def get(self, request, pk=None):
+        if pk:
+            scan = get_object_or_404(ScanLog, pk=pk)
+            serializer = ScanLogSerializer(scan)
+        else:
+            scans = ScanLog.objects.all()
+            serializer = ScanLogSerializer(scans, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = ScanLogSerializer(data=request.data)
+        if serializer.is_valid():
+            scan = serializer.save()
+
+            # Optionally, update delivery status in Order if needed
+            if scan.order and scan.order.delivery_status != "Delivered":
+                scan.order.delivery_status = "Delivered"
+                scan.order.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        scan = get_object_or_404(ScanLog, pk=pk)
+        serializer = ScanLogSerializer(scan, data=request.data, partial=True)
+        if serializer.is_valid():
+            scan = serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        scan = get_object_or_404(ScanLog, pk=pk)
+        scan.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# class ReceiptPDFView(APIView):
+
+#     def get(self, request, order_id, *args, **kwargs):
+#         # 🔹 Fetch order instance
+#         order = Order.objects.get(order_id=order_id)
+
+#         # 🔹 Generate QR (this will also save to order.qr_code field)
+#         qr_content = generate_qr_code(order, request)
+
+#         # 🔹 Start PDF response
+#         response = HttpResponse(content_type="application/pdf")
+#         response["Content-Disposition"] = f'inline; filename="order_{order.order_id}.pdf"'
+
+#         buffer = BytesIO()
+
+#         # ✅ Receipt size instead of A4 (80mm width, ~200mm height)
+#         RECEIPT_WIDTH = 226   # ~80mm
+#         RECEIPT_HEIGHT = 400  # you can adjust if content bigger
+#         p = canvas.Canvas(buffer, pagesize=(RECEIPT_WIDTH, RECEIPT_HEIGHT))
+
+#         width, height = (RECEIPT_WIDTH, RECEIPT_HEIGHT)
+#         y = height - 30  # top margin
+
+#         # Title
+#         p.setFont("DejaVuSans", 12)
+#         p.drawCentredString(width/2, y, "Gate Pass")
+#         y -= 20
+#         p.setFont("DejaVuSans", 10)
+#         p.drawCentredString(width/2, y, "Customer Receipt")
+
+#         y -= 30
+#         p.setFont("DejaVuSans", 8)
+
+#         # Print order details
+#         def line(label, value):
+#             nonlocal y
+#             p.drawString(20, y, f"{label}:")
+#             p.drawRightString(width - 20, y, str(value))
+#             y -= 12
+
+#         line("Payment Type", order.payment_method)
+#         line("Customer Name", order.customer.name)
+#         line("City", order.customer.city if hasattr(order.customer, "city") else "-")
+#         line("Product", order.product.product_name)
+#         line("Category", order.category)
+#         line("Quantity", order.quantity or order.unit)
+#         line("Amount", f"₹{order.total_amount}")
+#         line("Paid", f"₹{order.paid_amount}")
+#         line("Pending", f"₹{order.pending_amount}")
+#         line("Payment Status", order.payment_status)
+#         line("Operator", order.created_by.username if order.created_by else "Admin")
+
+#         # 🔹 Insert QR code image saved in model
+#         if order.qr_code:
+#             p.drawInlineImage(order.qr_code.path, width/2 - 40, y-100, 80, 80)
+#             y -= 110
+
+#         # Footer
+#         p.drawString(20, y, "Manager Sign")
+
+#         p.showPage()
+#         p.save()
+#         pdf = buffer.getvalue()
+#         buffer.close()
+#         response.write(pdf)
+#         return response
+
 
 
 class OrderAPIView(APIView):
@@ -392,86 +835,102 @@ class OrderAPIView(APIView):
             order = get_object_or_404(Order, pk=pk)
             serializer = OrderSerializer(order)
         else:
-            orders = Order.objects.all()
+            # ✅ Latest orders first by created_at
+            orders = Order.objects.all().order_by("-created_at")
             serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
     
     def post(self, request):
-            serializer = OrderSerializer(data=request.data, context={'request': request})
-            if serializer.is_valid():
-                order = serializer.save()
+        serializer = OrderSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            order = serializer.save()
 
-                # ✅ Generate QR Code
-                qr = qrcode.make(f"Order ID: {order.order_id}, Amount: {order.total_amount}")
-                qr_filename = f"order_{order.order_id}.png"
-                qr_path = os.path.join(settings.MEDIA_ROOT, 'qrcodes', qr_filename)
+            # ✅ Generate QR Code with custom scan URL
+            qr_content = generate_qr_code(order, request)  # <-- FIXED: now points to /scan_auto/?order_id=...
+            qr_url = request.build_absolute_uri(order.qr_code.url) if hasattr(order, "qr_code") else None
 
-                # ensure dir exists
-                os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-                qr.save(qr_path)
+            # ✅ Call ReceiptPDFView internally
+            factory = APIRequestFactory()
+            pdf_request = factory.get(f"/api/receipt/{order.order_id}/")  # your ReceiptPDFView URL
+            pdf_request.user = request.user  # pass the authenticated user
+            view = ReceiptPDFView.as_view()
+            pdf_response = view(pdf_request, order_id=order.order_id)
 
-                # save path in model if ImageField exists
-                if hasattr(order, "qr_code"):
-                    order.qr_code.name = f"qrcodes/{qr_filename}"
-                    order.save()
+            # Save PDF to media
+            receipt_path = os.path.join(settings.MEDIA_ROOT, 'receipts', f'order_{order.order_id}.pdf')
+            os.makedirs(os.path.dirname(receipt_path), exist_ok=True)
+            with open(receipt_path, 'wb') as f:
+                f.write(pdf_response.content)
 
-                # ✅ Generate Receipt PDF (from utils.py)
-                receipt_path = generate_receipt_pdf(order)
+            receipt_url = request.build_absolute_uri(
+                os.path.join(settings.MEDIA_URL, 'receipts', f'order_{order.order_id}.pdf')
+            )
 
-                # ✅ Build URLs
-                qr_url = request.build_absolute_uri(order.qr_code.url) if hasattr(order, "qr_code") else None
-                receipt_url = request.build_absolute_uri(
-                    os.path.join(settings.MEDIA_URL, 'receipts', f'order_{order.order_id}.pdf')
-                )
+            return Response({
+                "order": OrderSerializer(order).data,
+                "qr_url": qr_url,
+                "receipt_url": receipt_url,
+                "encoded_api_url": qr_content  # debug: the actual URL encoded in QR
+            }, status=status.HTTP_201_CREATED)
 
-                return Response({
-                    "order": OrderSerializer(order).data,
-                    "qr_url": qr_url,
-                    "receipt_url": receipt_url
-                }, status=status.HTTP_201_CREATED)
-
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
         order = get_object_or_404(Order, pk=pk)
         serializer = OrderSerializer(order, data=request.data, partial=True, context={'request': request})
-        if serializer.is_valid():
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
             order = serializer.save()
 
-            # ✅ Update transaction
-            transaction = Transaction.objects.filter(order=order).first()
-            if transaction:
-                discount = order.discount
-                transaction.total_amount = order.total_amount - discount
-                transaction.paid = order.paid_amount
-                transaction.pending = order.pending_amount
-                transaction.payment_status = order.payment_status
-                transaction.save()
+            # Update related transaction
+            transaction_obj = Transaction.objects.filter(order=order).first()
+            if transaction_obj:
+                transaction_obj.total_amount = (order.total_amount or 0) - (order.discount or 0)
+                transaction_obj.paid = order.paid_amount or 0
+                transaction_obj.pending = order.pending_amount or 0
+                transaction_obj.payment_status = getattr(order, 'payment_status', '')
+                transaction_obj.save()
 
-            receipt_path, receipt_url = None, None
+            receipt_path = None
+            receipt_url = None
 
-            # ✅ Generate QR + Receipt only if order is completed after update
-            if order.status.lower() == "completed":
+            # Check order status safely
+            order_status = getattr(order, 'order_status', '')  # use the actual model field
+            if order_status.lower() == "delivered":
                 qr_path = generate_qr_code(order)
-                receipt_path = generate_receipt_pdf(order, qr_path)
+
+                # Call ReceiptPDFView internally
+                factory = APIRequestFactory()
+                pdf_request = factory.get(f"/api/receipt/{order.order_id}/")
+                pdf_request.user = request.user
+                view = ReceiptPDFView.as_view()
+                pdf_response = view(pdf_request, order_id=order.order_id)
+
+                receipt_dir = os.path.join(settings.MEDIA_ROOT, 'receipts')
+                os.makedirs(receipt_dir, exist_ok=True)
+
+                receipt_path = os.path.join(receipt_dir, f'order_{order.order_id}.pdf')
+                with open(receipt_path, 'wb') as f:
+                    f.write(pdf_response.content)
 
                 receipt_url = request.build_absolute_uri(
                     os.path.join(settings.MEDIA_URL, 'receipts', f'order_{order.order_id}.pdf')
                 )
 
-            return Response({
-                "order": OrderSerializer(order).data,
-                "receipt_path": receipt_path,
-                "receipt_url": receipt_url
-            })
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+        return Response({
+            "order": serializer.data,
+            "receipt_path": receipt_path,
+            "receipt_url": receipt_url
+        }, status=status.HTTP_200_OK)
     def delete(self, request, pk):
         order = get_object_or_404(Order, pk=pk)
         Transaction.objects.filter(order=order).delete()
         order.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
 
 class OrderReceiptDownloadView(APIView):
     """View to download order receipt as PDF"""
@@ -511,7 +970,7 @@ class TransactionAPIView(APIView):
         if filter_type == "week":
             start = today - timedelta(days=today.weekday())  # Monday
             end = start + timedelta(days=6)                  # Sunday
-            transactions = transactions.filter(created_at__date__range=[start, end])
+            transactions = transactions.filter(paid_at__date__range=[start, end])
 
         # Monthly filter
         elif filter_type == "month":
@@ -520,26 +979,29 @@ class TransactionAPIView(APIView):
                 end = start.replace(year=start.year + 1, month=1, day=1) - timedelta(days=1)
             else:
                 end = start.replace(month=start.month + 1, day=1) - timedelta(days=1)
-            transactions = transactions.filter(created_at__date__range=[start, end])
+            transactions = transactions.filter(paid_at__date__range=[start, end])
 
         # Yearly filter
         elif filter_type == "year":
             start = today.replace(month=1, day=1)
             end = today.replace(month=12, day=31)
-            transactions = transactions.filter(created_at__date__range=[start, end])
+            transactions = transactions.filter(paid_at__date__range=[start, end])
 
         # Specific date filter
         if specific_date:
             date_obj = parse_date(specific_date)
             if date_obj:
-                transactions = transactions.filter(created_at__date=date_obj)
+                transactions = transactions.filter(paid_at__date=date_obj)
 
         # Range filter
         if start_date and end_date:
             start_obj = parse_date(start_date)
             end_obj = parse_date(end_date)
             if start_obj and end_obj:
-                transactions = transactions.filter(created_at__date__range=[start_obj, end_obj])
+                transactions = transactions.filter(paid_at__date__range=[start_obj, end_obj])
+
+        # ✅ Order by latest first
+        transactions = transactions.order_by("-paid_at")
 
         # Serialize
         serializer = TransactionSerializer(transactions, many=True)
@@ -566,9 +1028,6 @@ class TransactionAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
 
-from .serializers import OrderHistorySerializer
-
-
 class CustomerOrderHistoryAPIView(APIView):
     def get(self, request, customer_id):
         try:
@@ -576,15 +1035,61 @@ class CustomerOrderHistoryAPIView(APIView):
         except Customer.DoesNotExist:
             return Response({"message": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
 
+                # Get query params
+        # Get query params
+        filter_type = request.query_params.get("filter_type", None)  # e.g., filter_type=date
+        date_value = request.query_params.get("date", None)
+        start_date = request.query_params.get("start_date", None)
+        end_date = request.query_params.get("end_date", None)
+        timeline = request.query_params.get("timeline", None)
+
+        # Base queryset
         orders = Order.objects.filter(customer=customer).order_by("-created_at")
-        serializer = OrderHistorySerializer(orders, many=True)
-        return Response({
-            "customer_id": customer.id,
-            "customer_name": customer.name,
-            "mobile": customer.mobile,
-            "email": customer.email,
-            "order_history": serializer.data
-        }, status=status.HTTP_200_OK)
+
+        # Filter by created_at for a specific date
+        if filter_type == "date" and date_value:
+            orders = orders.filter(created_at__date=date_value)
+
+        # Filter by created_at date range
+        if start_date and end_date:
+            orders = orders.filter(created_at__date__gte=start_date, created_at__date__lte=end_date)
+
+        # Filter by timeline
+        today = date.today()
+        if timeline == "today":
+            orders = orders.filter(created_at__date=today)
+        elif timeline == "week":
+            start_week = today - timedelta(days=today.weekday())
+            orders = orders.filter(created_at__date__gte=start_week)
+        elif timeline == "month":
+            start_month = today.replace(day=1)
+            orders = orders.filter(created_at__date__gte=start_month)
+        elif timeline == "year":
+            start_year = today.replace(month=1, day=1)
+            orders = orders.filter(created_at__date__gte=start_year)
+
+        # Aggregates
+        totals = orders.aggregate(
+            total_amount=Sum("final_amount") or 0,
+            total_paid=Sum("paid_amount") or 0,
+        )
+
+        total_amount = totals.get("total_amount") or 0
+        total_paid = totals.get("total_paid") or 0
+        total_pending = total_amount - total_paid
+
+        # Prepare response
+        response_data = {
+            "customer": customer.name,
+            "total_orders": orders.count(),
+            "total_amount": total_amount,
+            "total_paid": total_paid,
+            "total_pending": total_pending,
+            "orders": OrderSerializer(orders, many=True).data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
 
 
 
@@ -595,7 +1100,48 @@ class CustomerTransactionHistoryAPIView(APIView):
         except Customer.DoesNotExist:
             return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        transactions = Transaction.objects.filter(customer=customer).order_by("-created_at")
+        transactions = Transaction.objects.filter(customer=customer)
+
+        # Optional date filters
+        filter_type = request.query_params.get("filter")  # week/month/year
+        specific_date = request.query_params.get("date")
+        start_date = request.query_params.get("start_date")
+        end_date = request.query_params.get("end_date")
+
+        today = now().date()
+
+        if filter_type == "week":
+            start = today - timedelta(days=today.weekday())
+            end = start + timedelta(days=6)
+            transactions = transactions.filter(paid_at__date__range=[start, end])
+
+        elif filter_type == "month":
+            start = today.replace(day=1)
+            if start.month == 12:
+                end = start.replace(year=start.year + 1, month=1, day=1) - timedelta(days=1)
+            else:
+                end = start.replace(month=start.month + 1, day=1) - timedelta(days=1)
+            transactions = transactions.filter(paid_at__date__range=[start, end])
+
+        elif filter_type == "year":
+            start = today.replace(month=1, day=1)
+            end = today.replace(month=12, day=31)
+            transactions = transactions.filter(paid_at__date__range=[start, end])
+
+        if specific_date:
+            date_obj = parse_date(specific_date)
+            if date_obj:
+                transactions = transactions.filter(paid_at__date=date_obj)
+
+        if start_date and end_date:
+            start_obj = parse_date(start_date)
+            end_obj = parse_date(end_date)
+            if start_obj and end_obj:
+                transactions = transactions.filter(paid_at__date__range=[start_obj, end_obj])
+
+        # Order by newest first
+        transactions = transactions.order_by("-paid_at")
+
         serializer = TransactionSerializer(transactions, many=True)
         return Response({
             "customer": customer.name,
@@ -624,20 +1170,6 @@ class CustomerReportAPIView(APIView):
 
         return Response(response_data)
 
-
-import csv
-from django.http import HttpResponse
-import csv
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
 
 class CustomerReportDownloadAPIView(APIView):
     def get(self, request, pk):
@@ -679,7 +1211,7 @@ class CustomerReportDownloadAPIView(APIView):
         elements.append(customer_table)
         elements.append(Spacer(1, 20))
 
-# ---------------- Orders ----------------
+# ---------------- Orders -------------------
         elements.append(Paragraph("Order History", styles['Heading2']))
 
         order_data = [[
@@ -751,81 +1283,90 @@ class CustomerReportDownloadAPIView(APIView):
 
 
 
-# views.py
-from django.db.models import Sum, Q
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from datetime import date, timedelta
-from .models import Order, Transaction
 
 class ReportAPIView(APIView):
+
     def get(self, request):
+        # --- Get filter params ---
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        specific_date = request.GET.get('date')
+        period = request.GET.get('period')
+        category = request.GET.get('category')
+        product_name = request.GET.get('product')  # product filter
+
+        # --- Base QuerySets ---
         orders = Order.objects.all()
         transactions = Transaction.objects.all()
 
-        # --- Filters ---
-        product_name = request.query_params.get("product_name")
-        category = request.query_params.get("category")
-        delivery_status = request.query_params.get("delivery_status")
-        timeline = request.query_params.get("timeline")   # today, week, month
-        start_date = request.query_params.get("start_date")
-        end_date = request.query_params.get("end_date")
+        # --- Apply timeline Filters ---
+        today = datetime.today().date()
 
-        # filter by product name
-        if product_name:
-            orders = orders.filter(product__name__icontains=product_name)
+        if specific_date:
+            orders = orders.filter(created_at__date=specific_date)
+            transactions = transactions.filter(paid_at__date=specific_date)
 
-        # filter by category
-        if category:
-            orders = orders.filter(product__category__icontains=category)
-
-        # filter by delivery status
-        if delivery_status:
-            orders = orders.filter(delivery_status=delivery_status)
-
-        # timeline filter
-        today = date.today()
-        if timeline == "today":
-            orders = orders.filter(order_date=today)
-        elif timeline == "week":
-            start_week = today - timedelta(days=today.weekday())
-            orders = orders.filter(order_date__gte=start_week)
-        elif timeline == "month":
-            orders = orders.filter(order_date__month=today.month, order_date__year=today.year)
-
-        # custom date range
         if start_date and end_date:
-            orders = orders.filter(order_date__range=[start_date, end_date])
+            orders = orders.filter(created_at__date__gte=start_date, created_at__date__lte=end_date)
+            transactions = transactions.filter(paid_at__date__gte=start_date, paid_at__date__lte=end_date)
 
-        # --- Aggregations ---
-        total_orders = orders.count()
-        total_amount = orders.aggregate(total=Sum("total_amount"))["total"] or 0
-        paid_amount = transactions.filter(order__in=orders).aggregate(paid=Sum("amount_paid"))["paid"] or 0
-        pending_amount = total_amount - paid_amount
-        total_quantity = orders.aggregate(qty=Sum("quantity"))["qty"] or 0
+        if period:
+            if period.lower() == 'weekly':
+                week_ago = today - timedelta(days=7)
+                orders = orders.filter(created_at__date__gte=week_ago)
+                transactions = transactions.filter(paid_at__date__gte=week_ago)
+            elif period.lower() == 'monthly':
+                orders = orders.filter(created_at__month=today.month, created_at__year=today.year)
+                transactions = transactions.filter(paid_at__month=today.month, paid_at__year=today.year)
+            elif period.lower() == 'yearly':
+                orders = orders.filter(created_at__year=today.year)
+                transactions = transactions.filter(paid_at__year=today.year)
 
-        data = {
-            "total_orders": total_orders,
-            "total_amount": total_amount,
-            "paid_amount": paid_amount,
-            "pending_amount": pending_amount,
-            "total_quantity": total_quantity,
+        # --- Apply category & product filters globally (for orders + transactions + product summary) ---
+        if product_name:
+            orders = orders.filter(product__product_name=product_name)
+            transactions = transactions.filter(order__product__product_name=product_name)
+
+        if category:
+            orders = orders.filter(product__category=category)
+            transactions = transactions.filter(order__product__category=category)
+
+        # --- Product Summary ---
+        product_summary = (
+            orders.values('product__category', 'product__product_name')
+                  .annotate(total_quantity=Sum('quantity'),
+                            total_pass_no=Sum('pass_no'))
+        )
+
+        # --- Order Summary ---
+        order_summary = {
+            'total_orders': orders.count(),
+            'delivered': orders.filter(delivery_status='Delivered').count(),
+            'exported': orders.filter(delivery_status='Exported').count(),
         }
 
-        return Response(data)
+        # --- Transaction Summary ---
+        transaction_summary = {
+            'total_amount': transactions.aggregate(Sum('total_amount'))['total_amount__sum'] or 0,
+            'paid_amount': transactions.aggregate(Sum('paid_amount'))['paid_amount__sum'] or 0,
+            'pending_amount': transactions.aggregate(Sum('pending_amount'))['pending_amount__sum'] or 0,
+        }
+
+        # --- Response ---
+        response = {
+            'product_summary': list(product_summary),
+            'order_summary': order_summary,
+            'transaction_summary': transaction_summary,
+        }
+
+        return Response(response)
 
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.db.models import Sum, Count
-from datetime import datetime, timedelta, date
-from .models import Order, Transaction
 
-# -------------------------------
+# --------------------------------------------
 # Orders Report
-# -------------------------------
+# -------------------------------------
 class OrdersReportView(APIView):
     def get(self, request):
         orders = Order.objects.all()
@@ -896,6 +1437,7 @@ class OrdersReportView(APIView):
 # -------------------------------
 # Transactions Report
 # -------------------------------
+
 class TransactionsReportView(APIView):
     def get(self, request):
         transactions = Transaction.objects.all()
@@ -912,7 +1454,10 @@ class TransactionsReportView(APIView):
             start_week = today - timedelta(days=today.weekday())
             transactions = transactions.filter(created_at__date__gte=start_week)
         elif timeline == "month":
-            transactions = transactions.filter(created_at__month=today.month, created_at__year=today.year)
+            transactions = transactions.filter(
+                created_at__month=today.month,
+                created_at__year=today.year
+            )
 
         # Custom date range
         if start_date and end_date:
@@ -921,107 +1466,47 @@ class TransactionsReportView(APIView):
                 end = datetime.strptime(end_date, "%Y-%m-%d").date()
                 transactions = transactions.filter(created_at__date__range=[start, end])
             except ValueError:
-                return Response({"error": "Invalid date format. Use YYYY-MM-DD"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Invalid date format. Use YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-        # Aggregations
-        total_amount = transactions.aggregate(total=Sum("total_amount"))["total"] or 0
-        paid_amount = transactions.aggregate(paid=Sum("paid_amount"))["paid"] or 0
+        # Aggregations in one go
+        aggregates = transactions.aggregate(
+            total_amount=Sum("order__final_amount"),
+            paid_amount=Sum("paid_amount"),
+        )
+
+        total_amount = aggregates["total_amount"] or 0
+        paid_amount = aggregates["paid_amount"] or 0
         pending_amount = total_amount - paid_amount
+        # Transaction history
+        serializer = TransactionSerializer(transactions, many=True)
 
         data = {
-            "total_amount": total_amount,
-            "paid_amount": paid_amount,
-            "pending_amount": pending_amount,
+            "summary": {
+                "total_amount": total_amount,
+                "paid_amount": paid_amount,
+                "pending_amount": pending_amount,
+            },
             "filters": {
                 "timeline": timeline,
                 "start_date": start_date,
-                "end_date": end_date
-            }
+                "end_date": end_date,
+            },
+            "transactions": serializer.data,
         }
         return Response(data, status=status.HTTP_200_OK)
 
-
 class RecentOrdersAPIView(APIView):
     def get(self, request):
-        limit = int(request.query_params.get("limit", 20))  # default 5 orders
+        limit = int(request.query_params.get("limit", 10))  # default 5 orders
         recent_orders = Order.objects.order_by("-created_at")[:limit]
         serializer = OrderSerializer(recent_orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
-# # views.py
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from rest_framework import status
-# from django.shortcuts import get_object_or_404
-# from .models import Order, ScanLog
-
-# class QRScanAPIView(APIView):
-#     """
-#     QR scan endpoint: marks delivered, logs scan, returns full order details
-#     """
-#     def get(self, request, order_id):
-#         device_info = request.META.get("HTTP_USER_AGENT", "Unknown")
-#         ip_address = request.META.get("REMOTE_ADDR", "")
-#         location = "Unknown"
-
-#         # Try to get location via IP API
-#         try:
-#             import requests
-#             res = requests.get(f"http://ip-api.com/json/{ip_address}").json()
-#             if res.get("status") == "success":
-#                 location = f"{res.get('city')}, {res.get('regionName')}, {res.get('country')}"
-#         except:
-#             pass
-
-#         order = get_object_or_404(Order, order_id=order_id)
-
-#         # ✅ Update delivery status
-#         order.delivery_status = "Delivered"
-#         order.delivered_at = now()
-#         order.save(update_fields=["delivery_status", "delivered_at"])
-
-#         # ✅ Save Scan Log
-#         ScanLog.objects.create(
-#             order=order,
-#             device_id=device_info,
-#             location=location
-#         )
-
-#         serializer = OrderSerializer(order)
-#         return Response(serializer.data)
-
-# from django.http import JsonResponse
-# from django.utils.timezone import now
-# import requests
-
-
-# @api_view(['GET'])
-# def scan_order(request):
-#     order_id = request.GET.get('order_id')
-#     order = get_object_or_404(Order, id=order_id)
-
-#     # Order status update
-#     order.status = "Delivered"
-#     order.save()
-
-#     # Response
-#     return Response({
-#         "message": "Order delivered successfully",
-#         "order_id": order.id,
-#         "customer": order.customer.name,
-#         "amount": order.total_amount,
-#         "status": order.status
-#     })
-
-
-from io import BytesIO
-from django.core.files import File
-import qrcode
-from django.shortcuts import render, get_object_or_404
-from django.utils.timezone import now
-from .models import Order
 
 def scan_auto(request):
     order_id = request.GET.get("order_id")
@@ -1031,12 +1516,7 @@ def scan_auto(request):
     return render(request, "scan_success.html", {"order": order})
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from django.utils.timezone import now
-from .models import Order
-from .serializers import OrderSerializer
+
 
 class ScanOrderAPIView(APIView):
     def get(self, request):
@@ -1054,4 +1534,17 @@ class ScanOrderAPIView(APIView):
         return Response({
             "scanned_url": request.build_absolute_uri(),
             "order": serializer.data
+        })
+
+
+
+class DashboardAPIView(APIView):
+    def get(self, request):
+        return Response({
+            "total_customers": Customer.objects.count(),
+            "total_orders": Order.objects.count(),
+            # "pending_deliveries": Order.objects.filter(delivery_status="Pending").count(),
+            # "completed_orders": Order.objects.filter(delivery_status="Delivered").count(),
+            "exported_orders": Order.objects.filter(delivery_status="Exported").count(),  
+            "delivered_orders": Order.objects.filter(delivery_status="Delivered").count(),  
         })
