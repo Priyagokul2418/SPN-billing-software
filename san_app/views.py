@@ -21,7 +21,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from io import BytesIO
-
+from django.db import transaction
 from django.http import HttpResponse
 
 from reportlab.lib.units import inch
@@ -40,7 +40,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from rest_framework.test import APIRequestFactory
-from .models import transaction
+
 
 
 
