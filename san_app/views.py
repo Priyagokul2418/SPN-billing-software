@@ -2,206 +2,50 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from .models import User,Customer,Product,Device,Order,Transaction
-from .serializers import UserSerializer,CustomerSerializer,ProductSerializer,DeviceSerializer,OrderSerializer,TransactionSerializer,LoginSerializer,ChangePasswordSerializer,ForgotPasswordSerializer,ResetPasswordSerializer
-from .serializers import OrderHistorySerializer
+from .models import User,Customer,Product,Device,Order,Transaction,ScanLog
+from .serializers import UserSerializer,CustomerSerializer,ProductSerializer,DeviceSerializer,OrderSerializer,TransactionSerializer,LoginSerializer,ChangePasswordSerializer,ForgotPasswordSerializer,ResetPasswordSerializer,OrderReceiptSerializer,OrderHistorySerializer,DeviceLoginSerializer, DeviceSerializer,ScanLogSerializer
+from django.conf import settings
 from django.shortcuts import render
-# views.py
-from django.db.models import Sum, Q
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.db.models import Sum, Q,Count
 from datetime import date, timedelta
-from .models import Order, Transaction
-
-
-from decimal import Decimal
-from django.db import transaction as db_transaction
-from django.db.models import Sum
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
-from .models import Customer, Order, Transaction
+from django.utils.dateparse import parse_date
 
 from decimal import Decimal
 from django.db import transaction as db_transaction
-from django.db.models import Sum
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from .models import Customer, Order, Transaction
-from decimal import Decimal
-from django.db import transaction as db_transaction
-from django.db.models import Sum
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
-from .models import Customer, Order, Transaction
+import os
+import datetime
 
-from decimal import Decimal
-from django.db import transaction as db_transaction
-from django.db.models import Sum
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
-from .models import Customer, Order, Transaction
-
-from decimal import Decimal
-from django.db import transaction as db_transaction
-from django.db.models import Sum
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
-from .models import Customer, Order, Transaction
-
-from decimal import Decimal
-from django.db import transaction as db_transaction
-from decimal import Decimal
-from django.db import transaction as db_transaction
-from decimal import Decimal
-from django.db import transaction as db_transaction
-from decimal import Decimal
-from django.db import transaction as db_transaction
-from django.db.models import Sum
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
-from decimal import Decimal
-from django.db import transaction as db_transaction
-from django.db.models import Sum
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Customer, Order, Transaction
-
-from decimal import Decimal
-from django.db import transaction as db_transaction
-from django.db.models import Sum
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Customer, Order, Transaction
-from decimal import Decimal
-from django.db import transaction as db_transaction
-from django.db.models import Sum
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Customer, Order, Transaction
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.db.models import Sum, Count
-from datetime import datetime, timedelta
-from .models import Order, Transaction
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.db.models import Sum, Count
-from datetime import datetime, timedelta, date
-from .models import Order, Transaction
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
+from io import BytesIO
 
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from django.conf import settings
-from rest_framework.views import APIView
-from rest_framework.response import Response
-import os
+
+from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
-from .models import Order
+from django.utils.timezone import now
+
 from django.utils import timezone
 from datetime import timedelta
 from .utils import generate_qr_code  
 import qrcode
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from django.utils.timezone import now
-from .models import Order
-from .serializers import OrderSerializer
-
 from .utils import send_otp_via_email
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from django.utils.dateparse import parse_date
-from reportlab.lib.units import inch
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Device
-from .serializers import DeviceLoginSerializer, DeviceSerializer
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Device
-from .serializers import DeviceLoginSerializer, DeviceSerializer
-
-
-import csv
-from django.http import HttpResponse
-import csv
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
-
-
-
-from django.http import HttpResponse
-from rest_framework.views import APIView
-from reportlab.pdfgen import canvas
-from io import BytesIO
-from .models import Order
-from .utils import generate_qr_code  
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-import os
-
-
-from django.urls import reverse
-
 from rest_framework.test import APIRequestFactory
-
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-from .models import ScanLog, Order
-from .serializers import ScanLogSerializer
+from .models import transaction
 
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.db import transaction
-from .models import Order
 
-# views.py
-from decimal import Decimal
 
-from decimal import Decimal
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Customer, Order
 
 
 
@@ -946,7 +790,8 @@ class OrderReceiptDownloadView(APIView):
             response = HttpResponse(pdf_file.read(), content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename=GatePass_Receipt_{order.order_id}.pdf'
             return response
-    
+import datetime
+
 class TransactionAPIView(APIView):
 
     def get(self, request, pk=None):
@@ -1091,7 +936,7 @@ class CustomerOrderHistoryAPIView(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
 
-
+import datetime
 
 class CustomerTransactionHistoryAPIView(APIView):
     def get(self, request, customer_id):
@@ -1279,7 +1124,33 @@ class CustomerReportDownloadAPIView(APIView):
             return Response({"error": f"Failed to generate PDF: {str(e)}"}, status=500)
 
         return response
+ # We'll create a serializer
 
+class ReceiptDataView(APIView):
+    def get(self, request, order_id, *args, **kwargs):
+        try:
+            order = Order.objects.get(order_id=order_id)
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize order data
+        data = {
+            "order_id": order.order_id,
+            "payment_method": order.payment_method,
+            "customer_name": order.customer.name,
+            "city": getattr(order.customer, "city", "-"),
+            "product_name": order.product.product_name,
+            "category": order.category,
+            "quantity": order.quantity or order.unit,
+            "total_amount": str(order.total_amount),
+            "paid_amount": str(order.paid_amount),
+            "pending_amount": str(order.pending_amount),
+            "payment_status": order.payment_status,
+            "operator": order.created_by.username if order.created_by else "Admin",
+            "qr_code_url": request.build_absolute_uri(order.qr_code.url) if order.qr_code else None,
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
 
 
 

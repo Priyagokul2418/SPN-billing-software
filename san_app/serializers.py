@@ -560,6 +560,40 @@ class OrderHistorySerializer(serializers.ModelSerializer):
 
 
 
+class OrderReceiptSerializer(serializers.ModelSerializer):
+    customer_name = serializers.CharField(source='customer.name', read_only=True)
+    city = serializers.CharField(source='customer.city', default='-', read_only=True)
+    product_name = serializers.CharField(source='product.product_name', read_only=True)
+    operator = serializers.CharField(source='created_by.username', default='Admin', read_only=True)
+    qr_code_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = [
+            'order_id',
+            'payment_method',
+            'customer_name',
+            'city',
+            'product_name',
+            'category',
+            'quantity',
+            'unit',
+            'total_amount',
+            'paid_amount',
+            'pending_amount',
+            'payment_status',
+            'operator',
+            'qr_code_url',
+        ]
+
+    def get_qr_code_url(self, obj):
+        request = self.context.get('request')
+        if obj.qr_code and request:
+            return request.build_absolute_uri(obj.qr_code.url)
+        return None
+
+
+
 class ReportSerializer(serializers.Serializer):
     total_orders = serializers.IntegerField()
     total_amount = serializers.DecimalField(max_digits=10, decimal_places=2)

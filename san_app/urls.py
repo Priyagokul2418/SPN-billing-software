@@ -25,6 +25,7 @@ from .views import (
     DashboardAPIView,
     ScanLogAPIView,
     PayNowAPIView,
+    ReceiptDataView,
     scan_auto
 )
 
@@ -61,6 +62,7 @@ urlpatterns = [
           ReceiptPDFView.as_view(), 
          name='download-receipt'),
     path("orders/recent/", RecentOrdersAPIView.as_view(), name="recent-orders"),
+    path('orders/<int:order_id>/receipt-data/', ReceiptDataView.as_view(), name='receipt-data'),
     # path("receipt/<int:order_id>/", ReceiptPDFView.as_view(), name="receipt-pdf"),
 
 
