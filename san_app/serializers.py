@@ -516,7 +516,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 
-# -------------------- Transaction Serializer --------------------
+# -------------------- Transaction Serializer -----------------------
 class TransactionSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.name', read_only=True)
     updated_by_name = serializers.CharField(source='updated_by.name', read_only=True)
