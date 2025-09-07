@@ -18,7 +18,7 @@ import os
 import datetime
 
 from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
+# from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from django.db import transaction
@@ -340,13 +340,13 @@ class DeviceLoginView(APIView):
 
 
 # Register only the stable Tamil font once (no variable fonts)
-font_path = r"C:\projects\SAN_project\san_app\fonts\Noto_Sans_Tamil\static\NotoSansTamil-Regular.ttf"
-pdfmetrics.registerFont(TTFont("NotoSansTamil", font_path))
+# font_path = r"C:\projects\SAN_project\san_app\fonts\Noto_Sans_Tamil\static\NotoSansTamil-Regular.ttf"
+# pdfmetrics.registerFont(TTFont("NotoSansTamil", font_path))
 
-# Register DejaVuSans (if you want it, otherwise remove)
-dejavu_path = os.path.join(os.path.dirname(font_path), "..", "DejaVuSans.ttf")
-if os.path.exists(dejavu_path):
-    pdfmetrics.registerFont(TTFont("DejaVuSans", dejavu_path))
+# # Register DejaVuSans (if you want it, otherwise remove)
+# dejavu_path = os.path.join(os.path.dirname(font_path), "..", "DejaVuSans.ttf")
+# if os.path.exists(dejavu_path):
+#     pdfmetrics.registerFont(TTFont("DejaVuSans", dejavu_path))
 
 # class ReceiptPDFView(APIView):
 #     def get(self, request, order_id, *args, **kwargs):
@@ -412,66 +412,66 @@ if os.path.exists(dejavu_path):
 
 
 
-class ReceiptPDFView(APIView):
-    def get(self, request, order_id, *args, **kwargs):
-        order = Order.objects.get(order_id=order_id)
-        qr_content = generate_qr_code(order, request)
+# class ReceiptPDFView(APIView):
+#     def get(self, request, order_id, *args, **kwargs):
+#         order = Order.objects.get(order_id=order_id)
+#         qr_content = generate_qr_code(order, request)
 
-        response = HttpResponse(content_type="application/pdf")
-        response["Content-Disposition"] = f'inline; filename="order_{order.order_id}.pdf"'
+#         response = HttpResponse(content_type="application/pdf")
+#         response["Content-Disposition"] = f'inline; filename="order_{order.order_id}.pdf"'
 
-        buffer = BytesIO()
-        RECEIPT_WIDTH, RECEIPT_HEIGHT = 226, 400
-        p = canvas.Canvas(buffer, pagesize=(RECEIPT_WIDTH, RECEIPT_HEIGHT))
+#         buffer = BytesIO()
+#         RECEIPT_WIDTH, RECEIPT_HEIGHT = 226, 400
+#         p = canvas.Canvas(buffer, pagesize=(RECEIPT_WIDTH, RECEIPT_HEIGHT))
 
-        width, height = RECEIPT_WIDTH, RECEIPT_HEIGHT
-        y = height - 30
+#         width, height = RECEIPT_WIDTH, RECEIPT_HEIGHT
+#         y = height - 30
 
-        # Draw English headers
-        p.setFont("Helvetica-Bold", 12)
-        p.drawCentredString(width / 2, y, "GATE PASS")
-        y -= 20
+#         # Draw English headers
+#         p.setFont("Helvetica-Bold", 12)
+#         p.drawCentredString(width / 2, y, "GATE PASS")
+#         y -= 20
 
-        p.setFont("Helvetica", 10)
-        p.drawCentredString(width / 2, y, "CUSTOMER RECEIPT")
-        y -= 30
+#         p.setFont("Helvetica", 10)
+#         p.drawCentredString(width / 2, y, "CUSTOMER RECEIPT")
+#         y -= 30
 
-        p.setFont("Helvetica", 8)
+#         p.setFont("Helvetica", 8)
 
-        def line(label, value):
-            nonlocal y
-            p.setFont("Helvetica", 8)
-            p.drawString(20, y, f"{label}:")
-            p.drawRightString(width - 20, y, str(value))
-            y -= 12
+#         def line(label, value):
+#             nonlocal y
+#             p.setFont("Helvetica", 8)
+#             p.drawString(20, y, f"{label}:")
+#             p.drawRightString(width - 20, y, str(value))
+#             y -= 12
 
-        # Draw order details lines in English
-        line("Payment Method", order.payment_method)
-        line("Customer Name", order.customer.name)
-        line("City", order.customer.city if hasattr(order.customer, "city") else "-")
-        line("Product", order.product.product_name)
-        line("Category", order.category)
-        line("Quantity/Unit", order.quantity or order.unit)
-        line("Total", f"{order.total_amount}")
-        line("Paid", f"{order.paid_amount}")
-        line("Pending", f"{order.pending_amount}")
-        line("Payment Status", order.payment_status)
-        line("Operator", order.created_by.username if order.created_by else "Admin")
+#         # Draw order details lines in English
+#         line("Payment Method", order.payment_method)
+#         line("Customer Name", order.customer.name)
+#         line("City", order.customer.city if hasattr(order.customer, "city") else "-")
+#         line("Product", order.product.product_name)
+#         line("Category", order.category)
+#         line("Quantity/Unit", order.quantity or order.unit)
+#         line("Total", f"{order.total_amount}")
+#         line("Paid", f"{order.paid_amount}")
+#         line("Pending", f"{order.pending_amount}")
+#         line("Payment Status", order.payment_status)
+#         line("Operator", order.created_by.username if order.created_by else "Admin")
 
-        if order.qr_code:
-            p.drawInlineImage(order.qr_code.path, width / 2 - 40, y - 100, 80, 80)
-            y -= 110
+#         if order.qr_code:
+#             p.drawInlineImage(order.qr_code.path, width / 2 - 40, y - 100, 80, 80)
+#             y -= 110
 
-        p.setFont("Helvetica", 8)
-        p.drawString(20, y, "Manager Sign")
+#         p.setFont("Helvetica", 8)
+#         p.drawString(20, y, "Manager Sign")
 
-        p.showPage()
-        p.save()
-        pdf = buffer.getvalue()
-        buffer.close()
-        response.write(pdf)
+#         p.showPage()
+#         p.save()
+#         pdf = buffer.getvalue()
+#         buffer.close()
+#         response.write(pdf)
 
-        return response
+#         return response
 
 from decimal import Decimal
 from django.db import transaction as db_transaction
