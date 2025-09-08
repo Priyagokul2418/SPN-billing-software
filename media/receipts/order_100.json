@@ -1,0 +1,15 @@
+{
+    "order_id": 100,
+    "payment_method": "UPI",
+    "customer_name": "Mani",
+    "city": "Surandai",
+    "product_name": "stone",
+    "category": "gravel stone",
+    "quantity": 2,
+    "total_amount": "0.00",
+    "paid_amount": "22200.00",
+    "pending_amount": "0.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_100_HD55Ypt.png"
+}

@@ -262,24 +262,26 @@ from django.utils import timezone  # ✅ import timezone
 
 class OrderSerializer(serializers.ModelSerializer):
     # Response-only computed fields
+    # ---------- Computed fields ----------
     total_amount = serializers.SerializerMethodField()
     final_amount = serializers.SerializerMethodField()
     pending_amount = serializers.SerializerMethodField()
     payment_status = serializers.SerializerMethodField()
     alert = serializers.SerializerMethodField()
 
-    # Response read-only
+    # ---------- Response read-only ----------
     product_name = serializers.CharField(source="product.product_name", read_only=True)
     customer_name_display = serializers.CharField(source="customer.name", read_only=True)
 
-    # Request (write-only)
-    customer_name = serializers.CharField(write_only=True, required=False)
+    # ---------- Request write-only ----------
+    customer_name_input = serializers.CharField(write_only=True, required=False)
     contact_no = serializers.CharField(write_only=True, required=True)
+
 
     class Meta:
         model = Order
         fields = [
-            'order_id', 'customer', 'customer_name', 'customer_name_display',
+            'order_id', 'customer', 'customer_name_input', 'customer_name_display',
             'contact_no', 'product', 'product_name', 'category',
             'measurement_type', 'quantity', 'unit',
             'delivery_address', 'total_amount', 'discount', 'final_amount',

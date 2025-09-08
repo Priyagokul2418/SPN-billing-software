@@ -1,0 +1,15 @@
+{
+    "order_id": 92,
+    "payment_method": "Cash",
+    "customer_name": "அருண் பிரகாஷ்",
+    "city": "மதுரை",
+    "product_name": "Bricks",
+    "category": "Red Bricks",
+    "quantity": 100,
+    "total_amount": "1500.00",
+    "paid_amount": "10000.00",
+    "pending_amount": "0.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_92_g4fO1OR.png"
+}

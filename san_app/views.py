@@ -14,8 +14,6 @@ from decimal import Decimal
 from django.db import transaction as db_transaction
 
 
-import os
-import datetime
 
 from reportlab.pdfbase import pdfmetrics
 # from reportlab.pdfbase.ttfonts import TTFont
@@ -33,7 +31,7 @@ from django.utils.timezone import now
 from django.utils import timezone
 from datetime import timedelta
 from .utils import generate_qr_code  
-import qrcode
+
 from .utils import send_otp_via_email
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -43,6 +41,9 @@ from rest_framework.test import APIRequestFactory
 
 
 
+import os
+import datetime
+import qrcode
 
 
 
@@ -178,7 +179,7 @@ class ResetPasswordView(APIView):
         return Response({"message": "Password reset successfully"}, status=status.HTTP_200_OK)
 
 
-
+# ------------------------------customer API view-------------------------------------------
 class CustomerAPIView(APIView):
 
     def get(self, request, pk=None):
@@ -242,16 +243,89 @@ class CustomerAPIView(APIView):
         customer.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+
+
+
+
+
+
+
+
+
+
+
+#  -------------------------product API view-------------------------------------------------------------
 class ProductAPIView(APIView):
+
+
+    # def get(self, request, pk=None):
+    #     if pk:
+    #         product = get_object_or_404(Product, pk=pk)
+    #         serializer = ProductSerializer(product)
+    #         return Response(serializer.data)
+
+    #     products = Product.objects.all().order_by("-id")
+
+    #     # --- Filter by product_name and get its categories ---
+    #     product_name = request.query_params.get('product')
+    #     if product_name:
+    #         # Filter products whose name contains the given string (case-insensitive)
+    #         filtered_products = products.filter(product_name__icontains=product_name)
+
+    #         # Get unique categories for these products
+    #         categories = filtered_products.values_list('category', flat=True).distinct()
+    #         return Response({
+    #             "product_name": product_name,
+    #             "categories": list(categories)
+    #         })
+
+    #     # --- Optional: filter by category only ---
+    #     category = request.query_params.get('category')
+    #     if category:
+    #         products = products.filter(category=category)
+
+    #     serializer = ProductSerializer(products, many=True)
+    #     return Response(serializer.data)
+
+
 
     def get(self, request, pk=None):
         if pk:
             product = get_object_or_404(Product, pk=pk)
             serializer = ProductSerializer(product)
-        else:
-            products = Product.objects.all().order_by("-id")  # latest first
-            serializer = ProductSerializer(products, many=True)
+            return Response(serializer.data)
+
+        products = Product.objects.all().order_by("-id")
+
+        # --- If query param 'productnames' is given, return distinct product names only ---
+        productnames = request.query_params.get('productnames')
+        if productnames is not None:
+            distinct_names = products.values_list('product_name', flat=True).distinct().order_by('product_name')
+            return Response({
+                "product_names": list(distinct_names)
+            })
+
+        # --- If specific product name is given, return its categories ---
+        product_name = request.query_params.get('product')
+        if product_name:
+            filtered_products = products.filter(product_name__iexact=product_name)
+            categories = filtered_products.values_list('category', flat=True).distinct()
+            return Response({
+                "product_name": product_name,
+                "categories": list(categories)
+            })
+
+        # --- Optional: filter by category only ---
+        category = request.query_params.get('category')
+        if category:
+            products = products.filter(category=category)
+
+        # --- Return full product details ---
+        serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
+
+
+
 
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
@@ -272,7 +346,17 @@ class ProductAPIView(APIView):
         product = get_object_or_404(Product, pk=pk)
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)  
+    
 
+
+
+
+
+
+
+
+
+# --------------------------Device API view--------------------------------------
 class DeviceAPIView(APIView):
 
     def get(self, request, pk=None):
@@ -305,7 +389,7 @@ class DeviceAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-
+# -----------------------Device Login view-----------------------
 
 class DeviceLoginView(APIView):
     def post(self, request):
@@ -473,134 +557,7 @@ class DeviceLoginView(APIView):
 
 #         return response
 
-from decimal import Decimal
-from django.db import transaction as db_transaction
-from django.db.models import Sum
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Customer, Order, Transaction
 
-class PayNowAPIView(APIView):
-    def post(self, request, customer_id):
-        try:
-            customer = Customer.objects.get(id=customer_id)
-        except Customer.DoesNotExist:
-            return Response({"message": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        pay_amount = request.data.get("pay_amount")
-        payment_method = request.data.get("payment_method", "Cash")
-
-        if not pay_amount:
-            return Response({"message": "Payment amount is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            pay_amount = Decimal(pay_amount)
-        except:
-            return Response({"message": "Invalid payment amount"}, status=status.HTTP_400_BAD_REQUEST)
-
-        if pay_amount <= 0:
-            return Response({"message": "Payment amount must be greater than zero"}, status=status.HTTP_400_BAD_REQUEST)
-
-        with db_transaction.atomic():
-            # Step 1: sum all pending amounts BEFORE applying payment
-            total_pending_before = Order.objects.filter(customer=customer).aggregate(
-                total_pending=Sum("pending_amount")
-            )["total_pending"] or Decimal("0.00")
-
-            # Step 2: apply payment to orders sequentially
-            orders = Order.objects.filter(customer=customer).exclude(payment_status="Paid").order_by("created_at")
-
-            for order in orders:
-                if pay_amount <= 0:
-                    break
-
-                final_amount = Decimal(order.final_amount)
-                existing_paid = Decimal(order.paid_amount)
-                pending = final_amount - existing_paid
-
-                if pay_amount >= pending:
-                    # Full payment
-                    payment_for_order = pending
-                    order.paid_amount = existing_paid + pending
-                    order.pending_amount = Decimal("0.00")
-                    order.payment_status = "Paid"
-                    pay_amount -= pending
-                else:
-                    # Partial payment
-                    payment_for_order = pay_amount
-                    order.paid_amount = existing_paid + pay_amount
-                    order.pending_amount = final_amount - order.paid_amount
-                    order.payment_status = "Pending"
-                    pay_amount = Decimal("0.00")
-
-                # Quantize amounts
-                order.paid_amount = order.paid_amount.quantize(Decimal("0.01"))
-                order.pending_amount = order.pending_amount.quantize(Decimal("0.01"))
-                order.save()
-
-                # Create transaction
-                Transaction.objects.create(
-                    order=order,
-                    customer=customer,
-                    total_amount=final_amount.quantize(Decimal("0.01")),
-                    paid_amount=payment_for_order.quantize(Decimal("0.01")),
-                    pending_amount=order.pending_amount,
-                    payment_method=payment_method
-                )
-
-            # Step 3: remaining pending = total pending before - original payment
-            remaining_pending = total_pending_before - Decimal(request.data.get("pay_amount", 0))
-            remaining_pending = max(remaining_pending, Decimal("0.00"))  # avoid negative
-            remaining_pending = remaining_pending.quantize(Decimal("0.01"))
-
-        return Response({
-            "message": "Payment processed successfully",
-            "customer_id": customer.id,
-            "remaining_pending": str(remaining_pending)
-        }, status=status.HTTP_200_OK)
-
-
-class ScanLogAPIView(APIView):
-    """
-    API to handle ScanLog
-    Supports GET, POST, PUT, DELETE
-    """
-
-    def get(self, request, pk=None):
-        if pk:
-            scan = get_object_or_404(ScanLog, pk=pk)
-            serializer = ScanLogSerializer(scan)
-        else:
-            scans = ScanLog.objects.all()
-            serializer = ScanLogSerializer(scans, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = ScanLogSerializer(data=request.data)
-        if serializer.is_valid():
-            scan = serializer.save()
-
-            # Optionally, update delivery status in Order if needed
-            if scan.order and scan.order.delivery_status != "Delivered":
-                scan.order.delivery_status = "Delivered"
-                scan.order.save()
-
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def put(self, request, pk):
-        scan = get_object_or_404(ScanLog, pk=pk)
-        serializer = ScanLogSerializer(scan, data=request.data, partial=True)
-        if serializer.is_valid():
-            scan = serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        scan = get_object_or_404(ScanLog, pk=pk)
-        scan.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # class ReceiptPDFView(APIView):
@@ -683,38 +640,38 @@ class OrderAPIView(APIView):
             orders = Order.objects.all().order_by("-created_at")
             serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)
-    
     def post(self, request):
         serializer = OrderSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             order = serializer.save()
 
-            # ✅ Generate QR Code with custom scan URL
-            qr_content = generate_qr_code(order, request)  # <-- FIXED: now points to /scan_auto/?order_id=...
+            # ✅ Generate QR Code
+            qr_content = generate_qr_code(order, request)
             qr_url = request.build_absolute_uri(order.qr_code.url) if hasattr(order, "qr_code") else None
 
-            # ✅ Call ReceiptPDFView internally
+            # ✅ Call ReceiptDataView internally (JSON response)
             factory = APIRequestFactory()
-            pdf_request = factory.get(f"/api/receipt/{order.order_id}/")  # your ReceiptPDFView URL
-            pdf_request.user = request.user  # pass the authenticated user
-            view = ReceiptPDFView.as_view()
+            pdf_request = factory.get(f"/api/receipt/{order.order_id}/")
+            pdf_request.user = request.user
+            view = ReceiptDataView.as_view()
             pdf_response = view(pdf_request, order_id=order.order_id)
 
-            # Save PDF to media
-            receipt_path = os.path.join(settings.MEDIA_ROOT, 'receipts', f'order_{order.order_id}.pdf')
+            # ✅ Save JSON as file (not real PDF)
+            receipt_path = os.path.join(settings.MEDIA_ROOT, 'receipts', f'order_{order.order_id}.json')
             os.makedirs(os.path.dirname(receipt_path), exist_ok=True)
-            with open(receipt_path, 'wb') as f:
-                f.write(pdf_response.content)
+            with open(receipt_path, 'w', encoding="utf-8") as f:
+                import json
+                json.dump(pdf_response.data, f, indent=4, ensure_ascii=False)
 
             receipt_url = request.build_absolute_uri(
-                os.path.join(settings.MEDIA_URL, 'receipts', f'order_{order.order_id}.pdf')
+                os.path.join(settings.MEDIA_URL, 'receipts', f'order_{order.order_id}.json')
             )
 
             return Response({
                 "order": OrderSerializer(order).data,
                 "qr_url": qr_url,
                 "receipt_url": receipt_url,
-                "encoded_api_url": qr_content  # debug: the actual URL encoded in QR
+                "encoded_api_url": qr_content
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -750,7 +707,7 @@ class OrderAPIView(APIView):
                 factory = APIRequestFactory()
                 pdf_request = factory.get(f"/api/receipt/{order.order_id}/")
                 pdf_request.user = request.user
-                view = ReceiptPDFView.as_view()
+                view = ReceiptDataView.as_view()
                 pdf_response = view(pdf_request, order_id=order.order_id)
 
                 receipt_dir = os.path.join(settings.MEDIA_ROOT, 'receipts')
@@ -936,7 +893,7 @@ class CustomerOrderHistoryAPIView(APIView):
         return Response(response_data, status=status.HTTP_200_OK)
 
 
-import datetime
+
 
 class CustomerTransactionHistoryAPIView(APIView):
     def get(self, request, customer_id):
@@ -1126,6 +1083,144 @@ class CustomerReportDownloadAPIView(APIView):
         return response
  # We'll create a serializer
 
+
+
+
+
+class PayNowAPIView(APIView):
+    def post(self, request, customer_id):
+        try:
+            customer = Customer.objects.get(id=customer_id)
+        except Customer.DoesNotExist:
+            return Response({"message": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        pay_amount = request.data.get("pay_amount")
+        payment_method = request.data.get("payment_method", "Cash")
+
+        if not pay_amount:
+            return Response({"message": "Payment amount is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            pay_amount = Decimal(pay_amount)
+        except:
+            return Response({"message": "Invalid payment amount"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if pay_amount <= 0:
+            return Response({"message": "Payment amount must be greater than zero"}, status=status.HTTP_400_BAD_REQUEST)
+
+        with db_transaction.atomic():
+            # Step 1: sum all pending amounts BEFORE applying payment
+            total_pending_before = Order.objects.filter(customer=customer).aggregate(
+                total_pending=Sum("pending_amount")
+            )["total_pending"] or Decimal("0.00")
+
+            # Step 2: apply payment to orders sequentially
+            orders = Order.objects.filter(customer=customer).exclude(payment_status="Paid").order_by("created_at")
+
+            for order in orders:
+                if pay_amount <= 0:
+                    break
+
+                final_amount = Decimal(order.final_amount)
+                existing_paid = Decimal(order.paid_amount)
+                pending = final_amount - existing_paid
+
+                if pay_amount >= pending:
+                    # Full payment
+                    payment_for_order = pending
+                    order.paid_amount = existing_paid + pending
+                    order.pending_amount = Decimal("0.00")
+                    order.payment_status = "Paid"
+                    pay_amount -= pending
+                else:
+                    # Partial payment
+                    payment_for_order = pay_amount
+                    order.paid_amount = existing_paid + pay_amount
+                    order.pending_amount = final_amount - order.paid_amount
+                    order.payment_status = "Pending"
+                    pay_amount = Decimal("0.00")
+
+                # Quantize amounts
+                order.paid_amount = order.paid_amount.quantize(Decimal("0.01"))
+                order.pending_amount = order.pending_amount.quantize(Decimal("0.01"))
+                order.save()
+
+                # Create transaction
+                Transaction.objects.create(
+                    order=order,
+                    customer=customer,
+                    total_amount=final_amount.quantize(Decimal("0.01")),
+                    paid_amount=payment_for_order.quantize(Decimal("0.01")),
+                    pending_amount=order.pending_amount,
+                    payment_method=payment_method
+                )
+
+            # Step 3: remaining pending = total pending before - original payment
+            remaining_pending = total_pending_before - Decimal(request.data.get("pay_amount", 0))
+            remaining_pending = max(remaining_pending, Decimal("0.00"))  # avoid negative
+            remaining_pending = remaining_pending.quantize(Decimal("0.01"))
+
+        return Response({
+            "message": "Payment processed successfully",
+            "customer_id": customer.id,
+            "remaining_pending": str(remaining_pending)
+        }, status=status.HTTP_200_OK)
+
+
+class ScanLogAPIView(APIView):
+    """
+    API to handle ScanLog
+    Supports GET, POST, PUT, DELETE
+    """
+
+    def get(self, request, pk=None):
+        if pk:
+            scan = get_object_or_404(ScanLog, pk=pk)
+            serializer = ScanLogSerializer(scan)
+        else:
+            scans = ScanLog.objects.all()
+            serializer = ScanLogSerializer(scans, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = ScanLogSerializer(data=request.data)
+        if serializer.is_valid():
+            scan = serializer.save()
+
+            # Optionally, update delivery status in Order if needed
+            if scan.order and scan.order.delivery_status != "Delivered":
+                scan.order.delivery_status = "Delivered"
+                scan.order.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        scan = get_object_or_404(ScanLog, pk=pk)
+        serializer = ScanLogSerializer(scan, data=request.data, partial=True)
+        if serializer.is_valid():
+            scan = serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        scan = get_object_or_404(ScanLog, pk=pk)
+        scan.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Order
+from .serializers import OrderSerializer  # We'll create a serializer
+
 class ReceiptDataView(APIView):
     def get(self, request, order_id, *args, **kwargs):
         try:
@@ -1153,6 +1248,11 @@ class ReceiptDataView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
+from datetime import datetime, timedelta
+from django.db.models import Sum
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .models import Order, Transaction
 
 
 class ReportAPIView(APIView):
@@ -1205,8 +1305,10 @@ class ReportAPIView(APIView):
         # --- Product Summary ---
         product_summary = (
             orders.values('product__category', 'product__product_name')
-                  .annotate(total_quantity=Sum('quantity'),
-                            total_pass_no=Sum('pass_no'))
+                  .annotate(
+                      total_quantity=Sum('quantity'),
+                      total_pass_no=Sum('pass_no')
+                  )
         )
 
         # --- Order Summary ---

@@ -1,0 +1,15 @@
+{
+    "order_id": 96,
+    "payment_method": "Cash",
+    "customer_name": "Mari Divya",
+    "city": "tenkasi",
+    "product_name": "stone",
+    "category": "Small stone",
+    "quantity": 12,
+    "total_amount": "0.00",
+    "paid_amount": "2000.00",
+    "pending_amount": "0.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_96_3OOXbgT.png"
+}

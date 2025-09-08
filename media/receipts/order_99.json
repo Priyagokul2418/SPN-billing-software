@@ -1,0 +1,15 @@
+{
+    "order_id": 99,
+    "payment_method": "Cash",
+    "customer_name": "muthu",
+    "city": "pavoorchatram",
+    "product_name": "stone",
+    "category": "gravel stone",
+    "quantity": 10,
+    "total_amount": "0.00",
+    "paid_amount": "100.00",
+    "pending_amount": "0.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_99_ceYr4oC.png"
+}

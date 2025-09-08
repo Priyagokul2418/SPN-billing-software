@@ -1,0 +1,15 @@
+{
+    "order_id": 95,
+    "payment_method": "Bank",
+    "customer_name": "Mari Divya",
+    "city": "tenkasi",
+    "product_name": "stone",
+    "category": "gravel stone",
+    "quantity": 100,
+    "total_amount": "0.00",
+    "paid_amount": "500.00",
+    "pending_amount": "5495.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_95_Gueip83.png"
+}

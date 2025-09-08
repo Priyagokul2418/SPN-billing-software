@@ -1,0 +1,15 @@
+{
+    "order_id": 102,
+    "payment_method": "UPI",
+    "customer_name": "Unknown",
+    "city": null,
+    "product_name": "stone",
+    "category": "Big stone",
+    "quantity": 1,
+    "total_amount": "0.00",
+    "paid_amount": "10200.00",
+    "pending_amount": "0.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_102_yiExLey.png"
+}
