@@ -1,0 +1,15 @@
+{
+    "order_id": 129,
+    "payment_method": "Cash",
+    "customer_name": "kumaran",
+    "city": "surandai",
+    "product_name": "bricks",
+    "category": "Hollow Bricks",
+    "quantity": 1,
+    "total_amount": "50.00",
+    "paid_amount": "76.00",
+    "pending_amount": "387.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_129_nnznq5o.png"
+}

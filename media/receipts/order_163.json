@@ -1,0 +1,15 @@
+{
+    "order_id": 163,
+    "payment_method": "Cash",
+    "customer_name": "ravi",
+    "city": "madurai",
+    "product_name": "sand",
+    "category": "fine sand",
+    "quantity": "5.00",
+    "total_amount": "175000.00",
+    "paid_amount": "500.00",
+    "pending_amount": "174550.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_163_cdzw9lB.png"
+}

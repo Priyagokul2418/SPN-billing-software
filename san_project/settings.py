@@ -87,6 +87,22 @@ DATABASES = {
 }
 
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'your_db_name',         # Replace with your MySQL database name
+#         'USER': 'your_db_user',         # Replace with your MySQL username
+#         'PASSWORD': 'your_db_password', # Replace with your MySQL password
+#         'HOST': 'localhost',            # Or your DB host
+#         'PORT': '3306',                 # Default MySQL port
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#         },
+#     }
+# }
+
+
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  
      "http://localhost:5174"
@@ -97,11 +113,12 @@ ALLOWED_HOSTS = [
     "localhost",
     "10.205.166.96",
     "10.251.118.96",
-    "192.168.1.21",
+    "192.168.1.30",
     "testserver",
     "13.228.225.19",
     "18.142.128.26",
     "54.254.162.138",
+    "10.83.137.96",
     "spn-billing-software.onrender.com",
     # "192.168.1.27",
     # "192.168.1.5", 
@@ -139,7 +156,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 

@@ -1,0 +1,15 @@
+{
+    "order_id": 150,
+    "payment_method": "Cash",
+    "customer_name": "Unknown",
+    "city": null,
+    "product_name": "bricks",
+    "category": "White sand",
+    "quantity": "2.00",
+    "total_amount": "100.00",
+    "paid_amount": "5000.00",
+    "pending_amount": "0.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_150_e29I6qx.png"
+}

@@ -1,0 +1,15 @@
+{
+    "order_id": 175,
+    "payment_method": "Cash",
+    "customer_name": "gokul",
+    "city": null,
+    "product_name": "Sand",
+    "category": "M-மணல் (M-Sand)",
+    "quantity": "1.00",
+    "final_amount": "20500.00",
+    "paid_amount": "20000.00",
+    "pending_amount": "500.00",
+    "payment_status": "Pending",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_175_LE8m0ms.png"
+}

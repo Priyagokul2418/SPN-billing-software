@@ -244,7 +244,7 @@ def generate_qr_code(order_instance, request=None):
             f"/scan_auto/?order_id={order_instance.order_id}"
         )
     else:
-        qr_content = f"http://10.205.166.96:8000/scan_auto/?order_id={order_instance.order_id}"
+        qr_content = f"http://192.168.1.30:8000//scan_auto/?order_id={order_instance.order_id}"
 
     # ✅ Debug print
     print("🔍 QR CONTENT:", qr_content)

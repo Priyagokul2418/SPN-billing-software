@@ -1,0 +1,15 @@
+{
+    "order_id": 147,
+    "payment_method": "Cash",
+    "customer_name": "Unknown",
+    "city": null,
+    "product_name": "Sand",
+    "category": "White sand",
+    "quantity": "1.00",
+    "total_amount": "60.00",
+    "paid_amount": "10000.00",
+    "pending_amount": "0.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_147_HPFzQFG.png"
+}

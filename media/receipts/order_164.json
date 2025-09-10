@@ -1,0 +1,15 @@
+{
+    "order_id": 164,
+    "payment_method": "Cash",
+    "customer_name": "ravi",
+    "city": "madurai",
+    "product_name": "Bricks",
+    "category": "Fly Ash Bricks",
+    "quantity": 8,
+    "total_amount": "96.00",
+    "paid_amount": "500.00",
+    "pending_amount": "96.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_164_P9hZMud.png"
+}

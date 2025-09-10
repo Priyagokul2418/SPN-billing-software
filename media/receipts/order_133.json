@@ -1,0 +1,15 @@
+{
+    "order_id": 133,
+    "payment_method": "Cash",
+    "customer_name": "kumaran",
+    "city": "surandai",
+    "product_name": "cement",
+    "category": "congrete cement",
+    "quantity": 1,
+    "total_amount": "0.00",
+    "paid_amount": "66.00",
+    "pending_amount": "107.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_133_SuJeoKs.png"
+}

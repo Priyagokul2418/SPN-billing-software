@@ -39,17 +39,9 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from rest_framework.test import APIRequestFactory
 
-
-
 import os
 import datetime
 import qrcode
-
-
-
-
-
-
 
 font_path = os.path.join(settings.BASE_DIR, "fonts", "DejaVuSans.ttf")
 
@@ -305,8 +297,15 @@ class ProductAPIView(APIView):
                 "product_names": list(distinct_names)
             })
 
-        # --- If specific product name is given, return its categories ---
+        # --- If specific product name + category given => return full details ---
         product_name = request.query_params.get('product')
+        category = request.query_params.get('category')
+        if product_name and category:
+            products = products.filter(product_name__iexact=product_name, category__iexact=category)
+            serializer = ProductSerializer(products, many=True)
+            return Response(serializer.data)
+
+        # --- If only product name is given => return its categories ---
         if product_name:
             filtered_products = products.filter(product_name__iexact=product_name)
             categories = filtered_products.values_list('category', flat=True).distinct()
@@ -316,14 +315,12 @@ class ProductAPIView(APIView):
             })
 
         # --- Optional: filter by category only ---
-        category = request.query_params.get('category')
         if category:
             products = products.filter(category=category)
 
         # --- Return full product details ---
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
-
 
 
 
@@ -627,7 +624,7 @@ class DeviceLoginView(APIView):
 #         response.write(pdf)
 #         return response
 
-
+from django.core.serializers.json import DjangoJSONEncoder
 
 class OrderAPIView(APIView):
 
@@ -659,9 +656,10 @@ class OrderAPIView(APIView):
             # ✅ Save JSON as file (not real PDF)
             receipt_path = os.path.join(settings.MEDIA_ROOT, 'receipts', f'order_{order.order_id}.json')
             os.makedirs(os.path.dirname(receipt_path), exist_ok=True)
+           
             with open(receipt_path, 'w', encoding="utf-8") as f:
                 import json
-                json.dump(pdf_response.data, f, indent=4, ensure_ascii=False)
+                json.dump(pdf_response.data, f, indent=4, ensure_ascii=False, cls=DjangoJSONEncoder)
 
             receipt_url = request.build_absolute_uri(
                 os.path.join(settings.MEDIA_URL, 'receipts', f'order_{order.order_id}.json')
@@ -1085,87 +1083,85 @@ class CustomerReportDownloadAPIView(APIView):
 
 
 
-
-
 class PayNowAPIView(APIView):
     def post(self, request, customer_id):
         try:
             customer = Customer.objects.get(id=customer_id)
         except Customer.DoesNotExist:
-            return Response({"message": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "Customer not found"}, status=404)
 
         pay_amount = request.data.get("pay_amount")
         payment_method = request.data.get("payment_method", "Cash")
 
         if not pay_amount:
-            return Response({"message": "Payment amount is required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Payment amount is required"}, status=400)
 
         try:
             pay_amount = Decimal(pay_amount)
         except:
-            return Response({"message": "Invalid payment amount"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Invalid payment amount"}, status=400)
 
         if pay_amount <= 0:
-            return Response({"message": "Payment amount must be greater than zero"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Payment amount must be greater than zero"}, status=400)
 
         with db_transaction.atomic():
-            # Step 1: sum all pending amounts BEFORE applying payment
-            total_pending_before = Order.objects.filter(customer=customer).aggregate(
-                total_pending=Sum("pending_amount")
-            )["total_pending"] or Decimal("0.00")
-
-            # Step 2: apply payment to orders sequentially
+            # Get all unpaid orders for the customer, ordered by created_at
             orders = Order.objects.filter(customer=customer).exclude(payment_status="Paid").order_by("created_at")
 
+            remaining_pay = pay_amount
+
             for order in orders:
-                if pay_amount <= 0:
+                if remaining_pay <= 0:
                     break
 
-                final_amount = Decimal(order.final_amount)
-                existing_paid = Decimal(order.paid_amount)
-                pending = final_amount - existing_paid
+                # Calculate how much can be paid for this order
+                final_amount = order.final_amount  # Already includes pass_amount and discount
+                pending_amount = order.pending_amount
+                existing_paid = order.paid_amount
 
-                if pay_amount >= pending:
-                    # Full payment
-                    payment_for_order = pending
-                    order.paid_amount = existing_paid + pending
+                if remaining_pay >= pending_amount:
+                    # Full payment for this order
+                    order.paid_amount = existing_paid + pending_amount
                     order.pending_amount = Decimal("0.00")
                     order.payment_status = "Paid"
-                    pay_amount -= pending
+                    paid_for_order = pending_amount
+                    remaining_pay -= pending_amount
                 else:
                     # Partial payment
-                    payment_for_order = pay_amount
-                    order.paid_amount = existing_paid + pay_amount
+                    order.paid_amount = existing_paid + remaining_pay
                     order.pending_amount = final_amount - order.paid_amount
                     order.payment_status = "Pending"
-                    pay_amount = Decimal("0.00")
+                    paid_for_order = remaining_pay
+                    remaining_pay = Decimal("0.00")
 
-                # Quantize amounts
                 order.paid_amount = order.paid_amount.quantize(Decimal("0.01"))
                 order.pending_amount = order.pending_amount.quantize(Decimal("0.01"))
                 order.save()
 
-                # Create transaction
-                Transaction.objects.create(
+                # Create/update Transaction (your serializer logic handles this)
+                Transaction.objects.update_or_create(
                     order=order,
-                    customer=customer,
-                    total_amount=final_amount.quantize(Decimal("0.01")),
-                    paid_amount=payment_for_order.quantize(Decimal("0.01")),
-                    pending_amount=order.pending_amount,
-                    payment_method=payment_method
+                    defaults={
+                        "customer": customer,
+                        "total_amount": order.final_amount,
+                        "paid_amount": paid_for_order.quantize(Decimal("0.01")),
+                        "pending_amount": order.pending_amount,
+                        "payment_method": payment_method,
+                        "updated_at": timezone.now(),
+                    },
                 )
 
-            # Step 3: remaining pending = total pending before - original payment
-            remaining_pending = total_pending_before - Decimal(request.data.get("pay_amount", 0))
-            remaining_pending = max(remaining_pending, Decimal("0.00"))  # avoid negative
-            remaining_pending = remaining_pending.quantize(Decimal("0.01"))
+            # Compute remaining pending for all orders
+            total_remaining_pending = sum(
+                o.pending_amount for o in Order.objects.filter(customer=customer)
+            ).quantize(Decimal("0.01"))
 
         return Response({
             "message": "Payment processed successfully",
             "customer_id": customer.id,
-            "remaining_pending": str(remaining_pending)
-        }, status=status.HTTP_200_OK)
-
+            "paid_amount": str(pay_amount - remaining_pay),
+            "remaining_pending": str(total_remaining_pending)
+        }, status=200)
 
 class ScanLogAPIView(APIView):
     """
@@ -1221,6 +1217,8 @@ from rest_framework import status
 from .models import Order
 from .serializers import OrderSerializer  # We'll create a serializer
 
+from decimal import Decimal
+
 class ReceiptDataView(APIView):
     def get(self, request, order_id, *args, **kwargs):
         try:
@@ -1228,7 +1226,20 @@ class ReceiptDataView(APIView):
         except Order.DoesNotExist:
             return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Serialize order data
+        from decimal import Decimal
+
+        final_amount = Decimal(order.final_amount or 0)  # already includes pass_amount
+        paid_amount = Decimal(order.paid_amount or 0)
+        pending_amount = final_amount - paid_amount
+
+        if pending_amount <= 0:
+            payment_status = "Paid"
+            pending_amount = Decimal("0.00")
+        elif paid_amount == 0:
+            payment_status = "Unpaid"
+        else:
+            payment_status = "Pending"
+
         data = {
             "order_id": order.order_id,
             "payment_method": order.payment_method,
@@ -1237,11 +1248,11 @@ class ReceiptDataView(APIView):
             "product_name": order.product.product_name,
             "category": order.category,
             "quantity": order.quantity or order.unit,
-            "total_amount": str(order.total_amount),
-            "paid_amount": str(order.paid_amount),
-            "pending_amount": str(order.pending_amount),
-            "payment_status": order.payment_status,
-            "operator": order.created_by.username if order.created_by else "Admin",
+            "final_amount": str(final_amount.quantize(Decimal("0.01"))),
+            "paid_amount": str(paid_amount.quantize(Decimal("0.01"))),
+            "pending_amount": str(pending_amount.quantize(Decimal("0.01"))),
+            "payment_status": payment_status,
+            "operator": "SPN",
             "qr_code_url": request.build_absolute_uri(order.qr_code.url) if order.qr_code else None,
         }
 
@@ -1255,52 +1266,55 @@ from rest_framework.response import Response
 from .models import Order, Transaction
 
 
+from decimal import Decimal
+from datetime import datetime, timedelta
+from django.db.models import Sum
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Order, Transaction
+from datetime import datetime, timedelta
+from decimal import Decimal
+from django.db.models import Sum
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+
 class ReportAPIView(APIView):
 
     def get(self, request):
-        # --- Get filter params ---
+        # --- Filter params ---
         start_date = request.GET.get('start_date')
         end_date = request.GET.get('end_date')
         specific_date = request.GET.get('date')
         period = request.GET.get('period')
         category = request.GET.get('category')
-        product_name = request.GET.get('product')  # product filter
+        product_name = request.GET.get('product')
 
         # --- Base QuerySets ---
         orders = Order.objects.all()
-        transactions = Transaction.objects.all()
-
-        # --- Apply timeline Filters ---
         today = datetime.today().date()
 
+        # --- Date filters ---
         if specific_date:
             orders = orders.filter(created_at__date=specific_date)
-            transactions = transactions.filter(paid_at__date=specific_date)
 
         if start_date and end_date:
             orders = orders.filter(created_at__date__gte=start_date, created_at__date__lte=end_date)
-            transactions = transactions.filter(paid_at__date__gte=start_date, paid_at__date__lte=end_date)
 
         if period:
             if period.lower() == 'weekly':
                 week_ago = today - timedelta(days=7)
                 orders = orders.filter(created_at__date__gte=week_ago)
-                transactions = transactions.filter(paid_at__date__gte=week_ago)
             elif period.lower() == 'monthly':
                 orders = orders.filter(created_at__month=today.month, created_at__year=today.year)
-                transactions = transactions.filter(paid_at__month=today.month, paid_at__year=today.year)
             elif period.lower() == 'yearly':
                 orders = orders.filter(created_at__year=today.year)
-                transactions = transactions.filter(paid_at__year=today.year)
 
-        # --- Apply category & product filters globally (for orders + transactions + product summary) ---
+        # --- Product / Category filters ---
         if product_name:
             orders = orders.filter(product__product_name=product_name)
-            transactions = transactions.filter(order__product__product_name=product_name)
-
         if category:
             orders = orders.filter(product__category=category)
-            transactions = transactions.filter(order__product__category=category)
 
         # --- Product Summary ---
         product_summary = (
@@ -1318,11 +1332,23 @@ class ReportAPIView(APIView):
             'exported': orders.filter(delivery_status='Exported').count(),
         }
 
-        # --- Transaction Summary ---
+        # --- Transaction Summary (sum unique orders) ---
+        total_amount_sum = Decimal("0.00")
+        paid_amount_sum = Decimal("0.00")
+        pending_amount_sum = Decimal("0.00")
+
+        for o in orders.distinct():
+            order_final = Decimal(o.final_amount or 0)
+            pass_amount = Decimal(o.pass_amount or 0)
+            final_total = order_final + pass_amount
+            total_amount_sum += final_total
+            paid_amount_sum += Decimal(o.paid_amount or 0)
+            pending_amount_sum += Decimal(o.pending_amount or 0)
+
         transaction_summary = {
-            'total_amount': transactions.aggregate(Sum('total_amount'))['total_amount__sum'] or 0,
-            'paid_amount': transactions.aggregate(Sum('paid_amount'))['paid_amount__sum'] or 0,
-            'pending_amount': transactions.aggregate(Sum('pending_amount'))['pending_amount__sum'] or 0,
+            'total_amount': str(total_amount_sum.quantize(Decimal("0.01"))),
+            'paid_amount': str(paid_amount_sum.quantize(Decimal("0.01"))),
+            'pending_amount': str(pending_amount_sum.quantize(Decimal("0.01"))),
         }
 
         # --- Response ---
@@ -1333,7 +1359,6 @@ class ReportAPIView(APIView):
         }
 
         return Response(response)
-
 
 
 

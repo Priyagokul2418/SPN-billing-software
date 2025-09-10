@@ -1,0 +1,15 @@
+{
+    "order_id": 174,
+    "payment_method": "Cash",
+    "customer_name": "diviya",
+    "city": null,
+    "product_name": "Bricks",
+    "category": "Fly Ash Bricks",
+    "quantity": 500,
+    "final_amount": "6000.00",
+    "paid_amount": "6000.00",
+    "pending_amount": "0.00",
+    "payment_status": "Paid",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_174_0kVcfSF.png"
+}

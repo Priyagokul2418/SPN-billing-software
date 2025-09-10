@@ -1,0 +1,15 @@
+{
+    "order_id": 119,
+    "payment_method": "Cash",
+    "customer_name": "praveen",
+    "city": null,
+    "product_name": "Sand",
+    "category": "பெரிய மணல் (Coarse Sand)",
+    "quantity": 2,
+    "total_amount": "0.00",
+    "paid_amount": "0.00",
+    "pending_amount": "50.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_119_ggjzjUs.png"
+}

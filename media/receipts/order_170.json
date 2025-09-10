@@ -1,0 +1,15 @@
+{
+    "order_id": 170,
+    "payment_method": "Cash",
+    "customer_name": "Mani",
+    "city": null,
+    "product_name": "Bricks",
+    "category": "Fly Ash Bricks",
+    "quantity": 1000,
+    "final_amount": "12000.00",
+    "paid_amount": "0.00",
+    "pending_amount": "12000.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_170_A7SSiFZ.png"
+}

@@ -1,0 +1,15 @@
+{
+    "order_id": 168,
+    "payment_method": "UPI",
+    "customer_name": "Ramalakshmi Karuppasamy",
+    "city": "Tenkasi",
+    "product_name": "Sand",
+    "category": "M-மணல் (M-Sand)",
+    "quantity": "3.00",
+    "total_amount": "60000.00",
+    "paid_amount": "20000.00",
+    "pending_amount": "40500.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_168_aHi3dbD.png"
+}

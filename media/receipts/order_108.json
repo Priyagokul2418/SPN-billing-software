@@ -1,0 +1,15 @@
+{
+    "order_id": 108,
+    "payment_method": "Card",
+    "customer_name": "kumaran",
+    "city": "surandai",
+    "product_name": "cement",
+    "category": "white cement",
+    "quantity": 1,
+    "total_amount": "0.00",
+    "paid_amount": "5000.00",
+    "pending_amount": "0.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_108_3UonBy7.png"
+}

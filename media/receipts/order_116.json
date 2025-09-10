@@ -1,0 +1,15 @@
+{
+    "order_id": 116,
+    "payment_method": "Cash",
+    "customer_name": "kumaran",
+    "city": "surandai",
+    "product_name": "Sand",
+    "category": "Red Bricks",
+    "quantity": 100,
+    "total_amount": "320000.00",
+    "paid_amount": "10000.00",
+    "pending_amount": "309000.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_116_exu8j3P.png"
+}

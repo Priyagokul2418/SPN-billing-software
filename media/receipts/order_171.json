@@ -1,0 +1,15 @@
+{
+    "order_id": 171,
+    "payment_method": "UPI",
+    "customer_name": "bala murugan",
+    "city": null,
+    "product_name": "stone",
+    "category": "gravel stone",
+    "quantity": "5.00",
+    "final_amount": "149500.00",
+    "paid_amount": "149500.00",
+    "pending_amount": "0.00",
+    "payment_status": "Pending",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_171_SsZqBh9.png"
+}

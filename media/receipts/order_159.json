@@ -1,0 +1,15 @@
+{
+    "order_id": 159,
+    "payment_method": "Cash",
+    "customer_name": "Ram",
+    "city": null,
+    "product_name": "Bricks",
+    "category": "white bricks",
+    "quantity": 15,
+    "total_amount": "225.00",
+    "paid_amount": "320.00",
+    "pending_amount": "100.00",
+    "payment_status": "Unpaid",
+    "operator": "san123",
+    "qr_code_url": "http://testserver/media/qrcodes/order_159_b7woNTm.png"
+}

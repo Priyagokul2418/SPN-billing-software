@@ -190,7 +190,7 @@ class Order(models.Model):
     measurement_type = models.CharField(max_length=20, choices=MEASUREMENT_CHOICES)
     quantity = models.PositiveIntegerField(null=True, blank=True)   
     unit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    contact_no = models.CharField(max_length=20,null=True)
+    contact_no = models.CharField(max_length=12,null=True,blank=True)
     delivery_address = models.TextField(null=True)
     qr_code = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -235,7 +235,7 @@ class Order(models.Model):
         super().save(*args, **kwargs)  
         if not self.qr_code:
            
-            base_url = "http://10.205.166.96:8000/scan_auto/"
+            base_url = "http://192.168.1.30:8000/scan_auto/"
             qr_content = f"{base_url}?order_id={self.order_id}&amount={self.total_amount}"
             print("✅ QR Content to encode:", qr_content) 
 
