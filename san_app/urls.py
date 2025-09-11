@@ -19,6 +19,7 @@ from .views import (
     OrdersReportView, TransactionsReportView,
     RecentOrdersAPIView,
     # ReceiptPDFView,
+    RefundAPIView,
     ScanOrderAPIView,
     DeviceLoginView,
     ReportAPIView,
@@ -74,6 +75,7 @@ urlpatterns = [
     # Transaction URLs
     path('transactions/', TransactionAPIView.as_view(), name='transaction-list'),
     path('transactions/<int:pk>/', TransactionAPIView.as_view(), name='transaction-detail'),
+    path('api/refund/<str:order_id>/', RefundAPIView.as_view(), name='order-refund'),
 
     path("customers/<int:pk>/report/", CustomerReportAPIView.as_view(), name="customer-report"),
     path("customers/<int:customer_id>/order-history/", CustomerOrderHistoryAPIView.as_view(), name="customer-order-history"),

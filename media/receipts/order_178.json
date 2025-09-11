@@ -1,0 +1,15 @@
+{
+    "order_id": 178,
+    "payment_method": "Cash",
+    "customer_name": "gokul",
+    "city": null,
+    "product_name": "cement",
+    "category": "White cement",
+    "quantity": "10.00",
+    "final_amount": "44000.00",
+    "paid_amount": "10000.00",
+    "pending_amount": "34000.00",
+    "payment_status": "Pending",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_178_IJY3bOa.png"
+}

@@ -237,15 +237,6 @@ class CustomerAPIView(APIView):
     
 
 
-
-
-
-
-
-
-
-
-
 #  -------------------------product API view-------------------------------------------------------------
 class ProductAPIView(APIView):
 
@@ -1081,9 +1072,12 @@ class CustomerReportDownloadAPIView(APIView):
         return response
  # We'll create a serializer
 
+# views.py
+from .serializers import to_dec
 
 
 class PayNowAPIView(APIView):
+# class PayNowAPIView(APIView):
     def post(self, request, customer_id):
         try:
             customer = Customer.objects.get(id=customer_id)
@@ -1114,20 +1108,19 @@ class PayNowAPIView(APIView):
                 if remaining_pay <= 0:
                     break
 
-                # Calculate how much can be paid for this order
-                final_amount = order.final_amount  # Already includes pass_amount and discount
+                final_amount = order.final_amount  # 👈 includes discount + pass
                 pending_amount = order.pending_amount
                 existing_paid = order.paid_amount
 
                 if remaining_pay >= pending_amount:
-                    # Full payment for this order
+                    # ✅ Full payment for this order
                     order.paid_amount = existing_paid + pending_amount
                     order.pending_amount = Decimal("0.00")
                     order.payment_status = "Paid"
                     paid_for_order = pending_amount
                     remaining_pay -= pending_amount
                 else:
-                    # Partial payment
+                    # ✅ Partial payment
                     order.paid_amount = existing_paid + remaining_pay
                     order.pending_amount = final_amount - order.paid_amount
                     order.payment_status = "Pending"
@@ -1138,7 +1131,7 @@ class PayNowAPIView(APIView):
                 order.pending_amount = order.pending_amount.quantize(Decimal("0.01"))
                 order.save()
 
-                # Create/update Transaction (your serializer logic handles this)
+                # Sync Transaction
                 Transaction.objects.update_or_create(
                     order=order,
                     defaults={
@@ -1151,6 +1144,14 @@ class PayNowAPIView(APIView):
                     },
                 )
 
+            # 🔥 If extra payment left → add to balance
+            if remaining_pay > 0:
+                customer.available_balance = (to_dec(customer.available_balance or 0) + remaining_pay)
+                customer.save(update_fields=["available_balance"])
+                extra_message = f"Extra amount {remaining_pay} added to balance."
+            else:
+                extra_message = None
+
             # Compute remaining pending for all orders
             total_remaining_pending = sum(
                 o.pending_amount for o in Order.objects.filter(customer=customer)
@@ -1160,8 +1161,11 @@ class PayNowAPIView(APIView):
             "message": "Payment processed successfully",
             "customer_id": customer.id,
             "paid_amount": str(pay_amount - remaining_pay),
-            "remaining_pending": str(total_remaining_pending)
+            "remaining_pending": str(total_remaining_pending),
+            "extra_balance": str(remaining_pay),
+            "note": extra_message
         }, status=200)
+
 
 class ScanLogAPIView(APIView):
     """
@@ -1502,6 +1506,45 @@ class RecentOrdersAPIView(APIView):
         recent_orders = Order.objects.order_by("-created_at")[:limit]
         serializer = OrderSerializer(recent_orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from decimal import Decimal, InvalidOperation
+from .models import Order
+
+
+class RefundAPIView(APIView):
+    def post(self, request, order_id):
+        try:
+            order = Order.objects.get(order_id=order_id)
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        refund_amount = request.data.get("refund_amount")
+
+        if order.order_status != "Cancelled":
+            return Response({"error": "Refund allowed only if order is Cancelled"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            refund_amount = Decimal(refund_amount)
+        except (TypeError, InvalidOperation):
+            return Response({"error": "Invalid refund amount"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            order.process_refund(refund_amount)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            "order_id": order.order_id,
+            "order_status": order.order_status,
+            "payment_status": order.payment_status,
+            "paid_amount": str(order.paid_amount),
+            "refunded_amount": str(order.refunded_amount),
+            "refunded_at": order.refunded_at,
+        })
 
 
 

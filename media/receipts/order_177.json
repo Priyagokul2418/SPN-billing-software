@@ -1,0 +1,15 @@
+{
+    "order_id": 177,
+    "payment_method": "Cash",
+    "customer_name": "Mani",
+    "city": null,
+    "product_name": "Sand",
+    "category": "சிறிய மணல் (Fine Sand)",
+    "quantity": "4.00",
+    "final_amount": "77500.00",
+    "paid_amount": "0.00",
+    "pending_amount": "77500.00",
+    "payment_status": "Unpaid",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_177_zvT3mP7.png"
+}

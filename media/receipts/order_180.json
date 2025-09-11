@@ -1,0 +1,15 @@
+{
+    "order_id": 180,
+    "payment_method": "Available Balance",
+    "customer_name": "minu",
+    "city": null,
+    "product_name": "Bricks",
+    "category": "Hollow Bricks",
+    "quantity": 10,
+    "final_amount": "150.00",
+    "paid_amount": "150.00",
+    "pending_amount": "0.00",
+    "payment_status": "Paid",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_180_pEjrx56.png"
+}

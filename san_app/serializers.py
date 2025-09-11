@@ -77,6 +77,7 @@ class ScanLogSerializer(serializers.ModelSerializer):
 # -------------------- Order Serializer --------------------
 
 
+from decimal import Decimal
 
 
 def to_dec(v):
@@ -89,6 +90,7 @@ def to_dec(v):
     except (InvalidOperation, ValueError, TypeError):
         return Decimal('0.00')
 
+from decimal import Decimal
 
 class OrderSerializer(serializers.ModelSerializer):
     # Response-only computed fields
@@ -98,7 +100,7 @@ class OrderSerializer(serializers.ModelSerializer):
     pending_amount = serializers.SerializerMethodField()
     payment_status = serializers.SerializerMethodField()
     alert = serializers.SerializerMethodField()
-
+    refund_status = serializers.SerializerMethodField()
     # ---------- Response read-only ----------
     product_name = serializers.CharField(source="product.product_name", read_only=True)
     customer_name_display = serializers.CharField(source="customer.name", read_only=True)
@@ -182,7 +184,25 @@ class OrderSerializer(serializers.ModelSerializer):
         if total_pending > credit_limit:
             return f"இந்த வாடிக்கையாளருக்கு முன் பாக்கிய தொகை {total_pending} உள்ளது. கடன் வரம்பு {credit_limit}. உறுதிப்படுத்த விரும்புகிறீர்களா?"
         return None
+    
 
+    def refund(self, refund_amount):
+        """
+        Process refund directly from serializer
+        """
+        if not self.instance:
+            raise serializers.ValidationError("Order instance required to process refund.")
+
+        try:
+            refund_amount = Decimal(refund_amount)
+        except (InvalidOperation, TypeError):
+            raise serializers.ValidationError("Invalid refund amount.")
+
+        self.instance.process_refund(refund_amount)
+        return self.instance
+    
+
+    
     # ---------- Create ----------
     def create(self, validated_data):
         customer_id = self.initial_data.get("customer")
@@ -255,6 +275,8 @@ class OrderSerializer(serializers.ModelSerializer):
             payment_method=order.payment_method,
         )
         return order
+
+
 
     # ---------- Update ----------
     def update(self, instance, validated_data):
@@ -361,7 +383,40 @@ class OrderSerializer(serializers.ModelSerializer):
         )
 
         return instance
+    
 
+    # def validate(self, attrs):
+    #     # get paid_amount and final_amount (old or new)
+    #     paid = to_dec(attrs.get("paid_amount") or getattr(self.instance, "paid_amount", 0))
+        
+    #     # final_amount ah compute panna porom create/update logic la, 
+    #     # so ippo approximate ah calculate panna vendiyathu
+    #     product = attrs.get("product") or getattr(self.instance, "product", None)
+    #     mtype = attrs.get("measurement_type") or getattr(self.instance, "measurement_type", None)
+    #     qty = to_dec(attrs.get("quantity") or getattr(self.instance, "quantity", 0))
+    #     unit = to_dec(attrs.get("unit") or getattr(self.instance, "unit", 0))
+    #     price = to_dec(getattr(product, "price", 0))
+
+    #     if mtype == "Quantity":
+    #         total = price * qty
+    #     elif mtype == "Unit":
+    #         total = price * unit
+    #     else:
+    #         total = price
+
+    #     discount = to_dec(attrs.get("discount") or getattr(self.instance, "discount", 0))
+    #     pass_no = to_dec(attrs.get("pass_no") or getattr(self.instance, "pass_no", 0))
+    #     amount_per_pass = to_dec(attrs.get("amount_per_pass") or getattr(self.instance, "amount_per_pass", 0))
+    #     pass_amount = pass_no * amount_per_pass
+
+    #     final = (total + pass_amount) - discount
+
+    #     # ✅ Validation
+    #     if paid > final:
+    #         raise serializers.ValidationError(
+    #               {"paid_amount": "செலுத்திய தொகை இறுதி தொகையை விட அதிகமாக இருக்க முடியாது."}            )
+
+    #     return attrs
 
 
 
