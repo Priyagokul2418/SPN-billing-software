@@ -79,27 +79,27 @@ WSGI_APPLICATION = 'san_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'spn',         # Replace with your MySQL database name
-        'USER': 'root',         # Replace with your MySQL username
-        'PASSWORD': 'admin', # Replace with your MySQL password
-         'HOST': '127.0.0.1',              # Or your DB host
-        'PORT': '3306',                 # Default MySQL port
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'spn',         # Replace with your MySQL database name
+#         'USER': 'root',         # Replace with your MySQL username
+#         'PASSWORD': 'admin', # Replace with your MySQL password
+#          'HOST': '127.0.0.1',              # Or your DB host
+#         'PORT': '3306',                 # Default MySQL port
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#         },
+#     }
+# }
 
 
 
