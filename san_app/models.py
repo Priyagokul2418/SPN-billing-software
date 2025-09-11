@@ -315,7 +315,7 @@ class Order(models.Model):
 
         # QR code generation (don’t deduct balance here)
         if not self.qr_code:
-            base_url = "http://192.168.1.30:8000/scan_auto/"
+            base_url = "https://spn-billing-software.onrender.com/scan_auto/"
             qr_content = f"{base_url}?order_id={self.order_id}&amount={self.total_amount}"
             qr = qrcode.make(qr_content)
 
