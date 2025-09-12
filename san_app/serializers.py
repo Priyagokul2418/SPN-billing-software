@@ -201,6 +201,16 @@ class OrderSerializer(serializers.ModelSerializer):
         self.instance.process_refund(refund_amount)
         return self.instance
     
+    def get_refund_status(self, obj):
+            # Logic decide pannunga
+            # Example 1: If your Order model has a Boolean field 'is_refunded'
+            if hasattr(obj, "is_refunded") and obj.is_refunded:
+                return "Refunded"
+            # Example 2: If your model has 'status' field
+            if hasattr(obj, "status") and obj.status == "cancelled":
+                return "Refund Initiated"
+            return "Not Refunded"
+        
 
     
     # ---------- Create ----------
