@@ -121,7 +121,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'paid_amount', 'pending_amount', 'payment_status', 'delivery_status', 'payment_method',
             'exported_at', 'delivered_at', 'delivered_by',
             'pass_no', 'amount_per_pass', 'pass_amount',
-            'alert',
+            'alert', "refund_status", 
             'created_by', 'updated_by', 'created_at', 'updated_at'
         ]
         extra_kwargs = {
