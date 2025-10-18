@@ -1,0 +1,15 @@
+{
+    "order_id": 195,
+    "payment_method": "Cash",
+    "customer_name": "vichu",
+    "city": "Chennai",
+    "product_name": "சிமெண்ட்",
+    "category": "concrete cement",
+    "quantity": "3.00",
+    "final_amount": "3660.00",
+    "paid_amount": "10000.00",
+    "pending_amount": "0.00",
+    "payment_status": "Paid",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_195_DRw9Wag.png"
+}

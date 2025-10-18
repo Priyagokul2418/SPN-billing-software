@@ -63,157 +63,156 @@ def send_otp_via_email(email):
         fail_silently=False,
     )
     return otp
+import os
+from django.conf import settings
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+# ---------- Register Tamil font ----------
+# Use exact path to TTF
+FONT_PATH = os.path.join(
+    settings.BASE_DIR,  # C:\projects\SAN_project
+    "san_app", "fonts", "Noto_Sans_Tamil", "static", "NotoSansTamil-Regular.ttf"
+)
+
+if not os.path.exists(FONT_PATH):
+    raise FileNotFoundError(f"Tamil font not found at: {FONT_PATH}")
+
+# Register font with ReportLab
+pdfmetrics.registerFont(TTFont("TamilFont", FONT_PATH))
+print("Tamil font registered successfully!")
+
+def get_attr(obj, key, default=""):
+    """
+    Safe getter: works for model instances or dicts (nested keys allowed, e.g. 'customer.name').
+    """
+    if isinstance(obj, dict):
+        try:
+            parts = key.split(".")
+            val = obj
+            for p in parts:
+                val = val[p]
+            return val
+        except (KeyError, TypeError):
+            return default
+    else:
+        parts = key.split(".")
+        val = obj
+        try:
+            for p in parts:
+                val = getattr(val, p)
+            return val
+        except AttributeError:
+            return default
 
 
 def generate_receipt_pdf(order):
-    """Generate PDF receipt for an order in Tamil"""
-    # Create receipts directory if not exists
-    receipts_dir = os.path.join(settings.MEDIA_ROOT, 'receipts')
+    """
+    Generate PDF receipt for an order in Tamil.
+    Works with model instance or DRF serializer dict.
+    Returns PDF file path.
+    """
+    # Create receipts directory
+    receipts_dir = os.path.join(settings.MEDIA_ROOT, "receipts")
     os.makedirs(receipts_dir, exist_ok=True)
-    
-    # PDF file path
-    file_path = os.path.join(receipts_dir, f'order_{order.order_id}.pdf')
-    
-    # Create PDF canvas
+
+    # Get order_id safely
+    order_id = get_attr(order, "order_id", "unknown")
+    file_path = os.path.join(receipts_dir, f"order_{order_id}.pdf")
+
+    # Create PDF
     c = canvas.Canvas(file_path, pagesize=A4)
     width, height = A4
-    
-    # ===== RECEIPT HEADER =====
-    # Shop name (Tamil)
-    c.setFont("Helvetica-Bold", 16)
-    c.drawCentredString(width/2, height-20*mm, "கேட் பாஸ் மரக்கடை")
-    c.setFont("Helvetica", 12)
-    c.drawCentredString(width/2, height-28*mm, "வாடிக்கையாளர் ரசீது")
-    
-    # ===== CUSTOMER DETAILS =====
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(20*mm, height-45*mm, "வாடிக்கையாளர் விவரங்கள்:")
-    c.setFont("Helvetica", 11)
-    
-    y_position = height-55*mm
-    details = [
-        f"பெயர்: {order.customer.name}",
-        f"முகவரி: {order.delivery_address}",
-        f"தொலைபேசி: {order.contact_no}",
-        f"ஆர்டர் எண்: {order.order_id}",
-        f"தேதி: {order.created_at.strftime('%d-%m-%Y %H:%M')}"
-    ]
-    
-    for detail in details:
-        c.drawString(25*mm, y_position, detail)
-        y_position -= 8*mm
-    
-    # ===== ORDER DETAILS =====
-    y_position -= 5*mm  # Add some space
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(20*mm, y_position, "ஆர்டர் விவரங்கள்:")
-    y_position -= 10*mm
-    
-    # Product details
-    c.setFont("Helvetica", 11)
-    c.drawString(25*mm, y_position, f"பொருள்: {order.product}")
-    y_position -= 8*mm
-    c.drawString(25*mm, y_position, f"வகை: {order.category}")
-    y_position -= 8*mm
-    
-    # Quantity/Unit with calculation
-    if order.measurement_type == 'Quantity':
-        item_line = f"அளவு: {order.quantity} x ₹{order.product.price} = ₹{order.quantity * order.product.price}"
+    y = height - 20 * mm
+
+    # HEADER
+    c.setFont("TamilFont", 16)
+    c.drawCentredString(width / 2, y, "கேட் பாஸ் மரக்கடை")
+    y -= 10 * mm
+    c.setFont("TamilFont", 12)
+    c.drawCentredString(width / 2, y, "வாடிக்கையாளர் ரசீது")
+    y -= 15 * mm
+
+    # CUSTOMER DETAILS
+    c.setFont("TamilFont", 12)
+    c.drawString(20 * mm, y, "வாடிக்கையாளர் விவரங்கள்:")
+    y -= 8 * mm
+    c.setFont("TamilFont", 11)
+
+    customer_name = get_attr(order, "customer.name", "")
+    customer_mobile = get_attr(order, "customer.mobile", "")
+    delivery_address = get_attr(order, "delivery_address", "")
+    created_at = get_attr(order, "created_at", "")
+    if hasattr(created_at, "strftime"):
+        created_at = created_at.strftime("%d-%m-%Y %H:%M")
+
+    for label, value in [
+        ("பெயர்", customer_name),
+        ("மொபைல்", customer_mobile),
+        ("முகவரி", delivery_address),
+        ("ஆர்டர் எண்", order_id),
+        ("தேதி", created_at),
+    ]:
+        c.drawString(25 * mm, y, f"{label}: {value}")
+        y -= 7 * mm
+
+    # ORDER DETAILS
+    y -= 5 * mm
+    c.setFont("TamilFont", 12)
+    c.drawString(20 * mm, y, "ஆர்டர் விவரங்கள்:")
+    y -= 10 * mm
+    c.setFont("TamilFont", 11)
+
+    product_name = get_attr(order, "product.product_name", "")
+    category = get_attr(order, "category", "")
+    measurement_type = get_attr(order, "measurement_type", "Quantity")
+    quantity = get_attr(order, "quantity", 0)
+    unit = get_attr(order, "unit", 0)
+    price = get_attr(order, "product.price", 0)
+
+    if measurement_type == "Quantity":
+        item_line = f"பொருள்: {product_name} | வகை: {category} | அளவு: {quantity} x ₹{price} = ₹{quantity * price}"
     else:
-        item_line = f"அளவு: {order.unit} x ₹{order.product.price} = ₹{float(order.unit) * float(order.product.price)}"
-    
-    c.drawString(25*mm, y_position, item_line)
-    y_position -= 15*mm
-    
-    # ===== PAYMENT DETAILS =====
-    c.setFont("Helvetica-Bold", 12)
-    c.drawString(20*mm, y_position, "கட்டண விவரங்கள்:")
-    y_position -= 10*mm
-    
-    c.setFont("Helvetica", 11)
-    payment_details = [
-        f"மொத்த தொகை: ₹{order.total_amount}",
-        f"தள்ளுபடி: ₹{order.discount}" if order.discount > 0 else None,
-        f"செலுத்திய தொகை: ₹{order.paid_amount}",
-        f"நிலுவை தொகை: ₹{order.pending_amount}",
-        f"கட்டண முறை: {order.get_payment_method_display()}"
-    ]
-    
-    for detail in payment_details:
-        if detail:  # Skip None values (like when no discount)
-            c.drawString(25*mm, y_position, detail)
-            y_position -= 8*mm
-    
-    # ===== QR CODE =====
-    if order.qr_code:
-        try:
-            qr_path = order.qr_code.path
-            if os.path.exists(qr_path):
-                # Position QR code at bottom right
-                qr_size = 35*mm
-                qr_x = width - 20*mm - qr_size
-                qr_y = 20*mm
-                c.drawImage(qr_path, qr_x, qr_y, qr_size, qr_size)
-                
-                # Add text below QR code
-                c.setFont("Helvetica", 8)
-                c.drawCentredString(width - 20*mm - qr_size/2, 15*mm, "ஸ்கேன் செய்யவும்")
-        except:
-            pass
-    
-    # ===== FOOTER =====
-    c.setFont("Helvetica-Oblique", 9)
-    c.drawCentredString(width/2, 10*mm, "நன்றி! மீண்டும் வருக!")
-    
-    # Save PDF
+        item_line = f"பொருள்: {product_name} | வகை: {category} | அளவு: {unit} x ₹{price} = ₹{unit * price}"
+
+    c.drawString(25 * mm, y, item_line)
+    y -= 12 * mm
+
+    # PAYMENT DETAILS
+    c.setFont("TamilFont", 12)
+    c.drawString(20 * mm, y, "கட்டண விவரங்கள்:")
+    y -= 8 * mm
+    c.setFont("TamilFont", 11)
+
+    discount = get_attr(order, "discount", 0)
+    paid_amount = get_attr(order, "paid_amount", 0)
+    total_amount = get_attr(order, "total_amount", 0)
+    pending_amount = get_attr(order, "pending_amount", 0)
+    payment_method_func = get_attr(order, "get_payment_method_display", lambda: "")
+    payment_method = payment_method_func() if callable(payment_method_func) else payment_method_func
+
+    for label, value in [
+        ("மொத்த தொகை", total_amount),
+        ("தள்ளுபடி", discount) if discount else None,
+        ("செலுத்திய தொகை", paid_amount),
+        ("நிலுவை தொகை", pending_amount),
+        ("கட்டண முறை", payment_method),
+    ]:
+        if label:
+            c.drawString(25 * mm, y, f"{label}: {value}")
+            y -= 7 * mm
+
+    # FOOTER
+    y -= 10 * mm
+    c.setFont("TamilFont", 10)
+    c.drawCentredString(width / 2, 15 * mm, "நன்றி! மீண்டும் வருக!")
+
     c.showPage()
     c.save()
-    
-    return file_path
 
-
-
-
-def generate_receipt_pdf(order):
-    file_path = f"media/receipts/order_{order.order_id}.pdf"
-    doc = SimpleDocTemplate(file_path, pagesize=(80*mm, 200*mm))
-    styles = getSampleStyleSheet()
-    styles["Normal"].fontName = "TamilFont"
-
-    elements = []
-
-    # Header
-    elements.append(Paragraph("<b>வரிசிமனசாமியைச் சேமிப்பு பண்ணை</b>", styles["Normal"]))
-    elements.append(Paragraph("ஆசிரமம், ஒண்ணாமலை - 627859", styles["Normal"]))
-    elements.append(Spacer(1, 10))
-
-    # Customer Info
-    customer_table = Table([
-        ["வாடிக்கையாளர் பெயர்:", order.customer.name],
-        ["முகவரி:", order.delivery_address],
-        ["தொலைபேசி:", order.customer.mobile],
-    ], colWidths=[80, 200])
-    customer_table.setStyle(TableStyle([
-        ("ALIGN", (0,0), (-1,-1), "LEFT"),
-        ("FONTNAME", (0,0), (-1,-1), "TamilFont"),
-    ]))
-    elements.append(customer_table)
-    elements.append(Spacer(1, 10))
-
-    # Item Info
-    item_table = Table([
-        ["பொருள்", "அளவு", "விலை"],
-        [order.product.product_name, order.quantity or order.unit, f"₹{order.total_amount}"]
-    ])
-    item_table.setStyle(TableStyle([
-        ("GRID", (0,0), (-1,-1), 0.5, colors.black),
-        ("FONTNAME", (0,0), (-1,-1), "TamilFont"),
-        ("ALIGN", (0,0), (-1,-1), "CENTER"),
-    ]))
-    elements.append(item_table)
-
-    # Save PDF
-    doc.build(elements)
     return file_path
 
 # def generate_qr_code(order_instance, request=None):
@@ -244,7 +243,7 @@ def generate_qr_code(order_instance, request=None):
             f"/scan_auto/?order_id={order_instance.order_id}"
         )
     else:
-        qr_content = f"https://spn-billing-software.onrender.com//scan_auto/?order_id={order_instance.order_id}"
+        qr_content = f"https://http://192.168.1.34:8000/scan_auto/?order_id={order_instance.order_id}"
 
     # ✅ Debug print
     print("🔍 QR CONTENT:", qr_content)
@@ -260,3 +259,265 @@ def generate_qr_code(order_instance, request=None):
 
     return qr_content
 
+
+# from decimal import Decimal
+# from .models import TransactionLog
+
+# def create_transaction_log(customer, amount_received, orders_cleared=None, excess_amount=Decimal("0.00")):
+#     orders_cleared = orders_cleared or []
+#     note = f"Paid ₹{amount_received}. Orders cleared: {orders_cleared}. Excess balance added: ₹{excess_amount}."
+    
+#     TransactionLog.objects.create(
+#         customer=customer,
+#         amount_received=Decimal(amount_received),
+#         orders_cleared=orders_cleared,
+#         excess_amount=Decimal(excess_amount),
+#         note=note
+#     )
+
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from datetime import datetime
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from datetime import datetime
+
+
+
+def safe_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+    
+
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.units import mm
+from datetime import datetime
+
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from datetime import datetime
+
+def safe_float(value):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+def generate_order_pdf(order_data: dict) -> bytes:
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    y = height - 50
+
+    # ---------- Title ----------
+    c.setFont("Helvetica-Bold", 20)
+    c.drawString(50, y, f"Order Receipt - #{order_data.get('order_id', '')}")
+    y -= 40
+
+    # ---------- Customer Information ----------
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, y, "Customer Information")
+    y -= 25
+    c.setFont("Helvetica", 12)
+
+    customer_name = order_data.get('customer_name_display') or order_data.get('customer')
+    if customer_name:
+        c.drawString(50, y, f"Name: {customer_name}")
+        y -= 20
+
+    mobile_no = order_data.get('customer_mobile') or order_data.get('contact_no')
+    if mobile_no:
+        c.drawString(50, y, f"Mobile: {mobile_no}")
+        y -= 20
+
+    delivery_address = order_data.get('delivery_address')
+    if delivery_address:
+        c.drawString(50, y, f"Delivery Address: {delivery_address}")
+        y -= 20
+
+    y -= 10
+
+    # ---------- Product & Order Information ----------
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, y, "Product & Order Information")
+    y -= 25
+    c.setFont("Helvetica", 12)
+
+    product_name = order_data.get('product_name')
+    if product_name:
+        c.drawString(50, y, f"Product Name: {product_name}")
+        y -= 20
+
+    category = order_data.get('category')
+    if category:
+        c.drawString(50, y, f"Category: {category}")
+        y -= 20
+
+    quantity = safe_float(order_data.get('quantity'))
+    unit = safe_float(order_data.get('unit'))
+
+    if quantity != 0:
+        c.drawString(50, y, f"Quantity: {quantity:.2f}")
+        y -= 20
+
+    if unit != 0:
+        c.drawString(50, y, f"Unit: {unit:.2f}")
+        y -= 20
+    total_amount = safe_float(order_data.get('total_amount'))
+    pass_amount = safe_float(order_data.get('pass_amount'))
+    discount = safe_float(order_data.get('discount'))
+    final_amount = safe_float(order_data.get('final_amount'))
+
+    c.drawString(50, y, f"Total Amount: {total_amount:.2f}")
+    y -= 20
+    c.drawString(50, y, f"Pass Amount: {pass_amount:.2f}")
+    y -= 20
+    c.drawString(50, y, f"Discount: {discount:.2f}")
+    y -= 20
+    c.drawString(50, y, f"Final Amount: {final_amount:.2f}")
+    y -= 20
+
+    # ---------- Payment Information ----------
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, y, "Payment Information")
+    y -= 25
+    c.setFont("Helvetica", 12)
+
+    paid_amount = safe_float(order_data.get('paid_amount'))
+    pending_amount = safe_float(order_data.get('pending_amount'))
+    payment_method = order_data.get('payment_method', '')
+    paid_at = order_data.get('paid_at', '')
+
+    c.drawString(50, y, f"Paid Amount: {paid_amount:.2f}")
+    y -= 20
+    c.drawString(50, y, f"Pending Amount: {pending_amount:.2f}")
+    y -= 20
+    if payment_method:
+        c.drawString(50, y, f"Payment Method: {payment_method}")
+        y -= 20
+    if paid_at:
+        try:
+            dt = datetime.strptime(paid_at, "%Y-%m-%d %H:%M:%S")
+            paid_at_str = dt.strftime("%d-%m-%Y %I:%M %p")
+        except:
+            paid_at_str = paid_at
+        c.drawString(50, y, f"Paid At: {paid_at_str}")
+        y -= 20
+
+    y -= 10
+
+    # ---------- Delivery Information ----------
+    delivery_status = order_data.get('delivery_status', '').lower()
+    if delivery_status == 'delivered':
+        c.setFont("Helvetica-Bold", 14)
+        c.drawString(50, y, "Delivery Information")
+        y -= 25
+        c.setFont("Helvetica", 12)
+
+        delivered_at = order_data.get('delivered_at')
+        if delivered_at:
+            try:
+                dt = datetime.strptime(delivered_at, "%Y-%m-%d %H:%M:%S")
+                delivered_at_str = dt.strftime("%d-%m-%Y %I:%M %p")
+            except:
+                delivered_at_str = delivered_at
+            c.drawString(50, y, f"Delivered At: {delivered_at_str}")
+            y -= 20
+
+        if delivery_address:
+            c.drawString(50, y, f"Delivery Address: {delivery_address}")
+            y -= 20
+
+    # ---------- Exported / Generated At ----------
+    c.setFont("Helvetica", 10)
+    c.drawString(50, 30, f"Exported At: {datetime.now().strftime('%d-%m-%Y %I:%M %p')}")
+
+    c.showPage()
+    c.save()
+    buffer.seek(0)
+    return buffer.read()
+
+
+
+# -----------------------------------tamil invoice------------------
+import os
+from django.http import HttpResponse, Http404
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
+from .models import Order  # import your Order model
+
+import os
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+# Correct path to the font
+FONT_PATH = os.path.join(
+    os.path.dirname(__file__),  # this is san_app
+    "fonts", "Noto_Sans_Tamil", "static", "NotoSansTamil-Regular.ttf"
+)
+
+# Register the font
+pdfmetrics.registerFont(TTFont("NotoTamil", FONT_PATH))
+def order_receipt_pdf(request, order_id):
+    try:
+        order = Order.objects.select_related("customer", "product").get(pk=order_id)
+    except Order.DoesNotExist:
+        raise Http404("Order not found")
+
+    # Response setup
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f"attachment; filename=OrderReceipt_{order.order_id}.pdf"
+
+    # PDF builder
+    doc = SimpleDocTemplate(response)
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name="Tamil", fontName="NotoTamil", fontSize=12))
+
+    story = []
+
+    # ===== Title =====
+    story.append(Paragraph(f"ஆர்டர் ரசீது - #{order.order_id}", styles["Tamil"]))
+    story.append(Spacer(1, 12))
+
+    # ===== Customer Info =====
+    story.append(Paragraph("வாடிக்கையாளர் தகவல்", styles["Tamil"]))
+    story.append(Paragraph(f"பெயர்: {order.customer.name if order.customer else ''}", styles["Tamil"]))
+    story.append(Paragraph(f"மொபைல்: {order.customer.mobile if order.customer else ''}", styles["Tamil"]))
+    story.append(Paragraph(f"முகவரி: {order.delivery_address or ''}", styles["Tamil"]))
+    story.append(Spacer(1, 12))
+
+    # ===== Product Info =====
+    story.append(Paragraph("பொருள் & ஆர்டர் விவரம்", styles["Tamil"]))
+    story.append(Paragraph(f"பொருள் பெயர்: {order.product.product_name if order.product else ''}", styles["Tamil"]))
+    story.append(Paragraph(f"வகை: {order.category}", styles["Tamil"]))
+    story.append(Paragraph(f"அளவீட்டு வகை: {order.measurement_type}", styles["Tamil"]))
+    story.append(Paragraph(f"அளவு: {order.quantity or '0'}", styles["Tamil"]))
+    story.append(Paragraph(f"அலகு: {order.unit or '0'}", styles["Tamil"]))
+    story.append(Paragraph(f"மொத்த தொகை: ₹{order.total_amount}", styles["Tamil"]))
+    story.append(Paragraph(f"தள்ளுபடி: ₹{order.discount}", styles["Tamil"]))
+    story.append(Paragraph(f"இறுதி தொகை: ₹{order.final_amount}", styles["Tamil"]))
+    story.append(Paragraph(f"செலுத்திய தொகை: ₹{order.paid_amount}", styles["Tamil"]))
+    story.append(Paragraph(f"நிலுவை தொகை: ₹{order.pending_amount}", styles["Tamil"]))
+    story.append(Paragraph(f"கட்டணம் நிலை: {order.payment_status}", styles["Tamil"]))
+    story.append(Spacer(1, 12))
+
+    # ===== Pass Info =====
+    story.append(Paragraph("பாஸ் விவரம்", styles["Tamil"]))
+    story.append(Paragraph(f"பாஸ் எண்: {order.pass_no or ''}", styles["Tamil"]))
+    story.append(Paragraph(f"ஒரு பாஸ் விலை: ₹{order.amount_per_pass or '0.00'}", styles["Tamil"]))
+    story.append(Paragraph(f"பாஸ் தொகை: ₹{order.pass_amount or '0.00'}", styles["Tamil"]))
+
+    # Build PDF
+    doc.build(story)
+    return response

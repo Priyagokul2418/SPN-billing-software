@@ -1,0 +1,15 @@
+{
+    "order_id": 183,
+    "payment_method": "Available Balance",
+    "customer_name": "mahinth",
+    "city": "Chennai",
+    "product_name": "cement",
+    "category": "congerete cement",
+    "quantity": "1.00",
+    "final_amount": "4500.00",
+    "paid_amount": "4500.00",
+    "pending_amount": "0.00",
+    "payment_status": "Paid",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_183_bDZGCyU.png"
+}

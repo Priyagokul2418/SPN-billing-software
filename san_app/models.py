@@ -2,12 +2,25 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator, ValidationError
 import random
+from decimal import Decimal,InvalidOperation
 from datetime import timedelta
 from django.utils import timezone
 import qrcode
 from io import BytesIO
 from django.core.files import File
 
+
+
+def to_dec(v):
+    if v is None:
+        return Decimal('0.00')
+    if isinstance(v, Decimal):
+        return v
+    try:
+        return Decimal(str(v))
+    except (InvalidOperation, ValueError, TypeError):
+        return Decimal('0.00')
+    
 
 class User(models.Model):
     id = models.AutoField(primary_key=True)
@@ -22,6 +35,7 @@ class User(models.Model):
     otp = models.CharField(max_length=6, null=True, blank=True)
     otp_created_at = models.DateTimeField(null=True, blank=True) 
     otp_verified_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
 
     def __str__(self):
@@ -49,29 +63,28 @@ class Customer(models.Model):
     customer_type= models.CharField(max_length=255,null=True)
     pincode = models.CharField(max_length=6,validators=[RegexValidator(r'^\d{6}$', 'Enter a valid 6-digit pincode')], null=True)
     credit_limit = models.DecimalField(max_digits=10, decimal_places=2,null=True)
-    available_balance = models.DecimalField(max_digits=10, decimal_places=2,null=True)
+    available_balance = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        default=Decimal("0.00")
+    )    
     created_by = models.ForeignKey(User, related_name='customers_created', on_delete=models.SET_NULL, null=True, blank=True)
     updated_by = models.ForeignKey(User, related_name='customers_updated', on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)  
     updated_at = models.DateTimeField(auto_now=True)   
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
 
 
 class Product(models.Model):
-    CATE_CHOICES = [
-        ('Bricks', 'செங்கல்'),
-        ('Sand', 'மண் / மணல்'),
-        ('Stone', 'கல்'),
-        ('Gravel', 'சிறுகல்'),
-        ('Cement', 'சிமெண்டு'),
-    ]
 
 
     MEASUREMENT_CHOICES = [
         ('Quantity', 'Quantity'),
         ('Unit', 'Unit'),
+        ('Ton', 'Ton'), 
     ]
 
     id = models.AutoField(primary_key=True)
@@ -80,34 +93,29 @@ class Product(models.Model):
     measurement_type = models.CharField(max_length=20, choices=MEASUREMENT_CHOICES)
     quantity = models.PositiveIntegerField(null=True, blank=True)
     unit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    ton = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     product_code = models.CharField(max_length=20, unique=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     created_by = models.ForeignKey('User', related_name='products_created', on_delete=models.SET_NULL, null=True, blank=True)
     updated_by = models.ForeignKey('User', related_name='products_updated', on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)  
-    updated_at = models.DateTimeField(auto_now=True)   
+    updated_at = models.DateTimeField(auto_now=True) 
+    is_active = models.BooleanField(default=True)  
 
     
     def save(self, *args, **kwargs):
         if not self.product_code:  
-            # Category short form (first 3 letters)
             cat_prefix = self.category[:3].upper()
-
-            # Product short form (first 3 letters of product_name)
             prod_prefix = self.product_name[:3].upper()
-
-            # Check if this product already exists in same category
             existing = Product.objects.filter(
                 category__iexact=self.category,
                 product_name__iexact=self.product_name
             ).first()
 
             if existing:  
-                # Use same code as existing product
                 self.product_code = existing.product_code
             else:
-                # Count how many unique product names in this category
                 unique_names = (
                     Product.objects.filter(category__iexact=self.category)
                     .values_list("product_name", flat=True).distinct()
@@ -117,11 +125,8 @@ class Product(models.Model):
 
         super().save(*args, **kwargs)
 
-
-    
-    
     def clean(self):
-        """Ensure category belongs to selected product."""
+
         valid_varieties = [v[0] for v in self.PRODUCT_VARIETIES.get(self.product, [])]
         if self.category not in valid_varieties:
             raise ValidationError({"category": f"{self.product} does not have variety {self.category}"})
@@ -141,8 +146,7 @@ class Device(models.Model):
     location = models.CharField(max_length=255)
    
     username = models.CharField(max_length=100, unique=True)
-    password = models.CharField(max_length=255)  # store hashed password
-
+    password = models.CharField(max_length=255) 
 
     created_by = models.ForeignKey(User, related_name='devices_created', on_delete=models.SET_NULL, null=True, blank=True)
     updated_by = models.ForeignKey(User, related_name='devices_updated', on_delete=models.SET_NULL, null=True, blank=True)
@@ -152,12 +156,6 @@ class Device(models.Model):
 
     def __str__(self):
         return self.device_id
-
-
-
-from decimal import Decimal
-    
-
 
 
 # Order model
@@ -172,7 +170,8 @@ class Order(models.Model):
     
     MEASUREMENT_CHOICES = [
     ('Quantity', 'Quantity'),  
-    ('Unit', 'Unit'),         
+    ('Unit', 'Unit'),
+    ('Ton', 'Ton'), 
 ]
     
     delivery_status_choices = [
@@ -181,6 +180,12 @@ class Order(models.Model):
         ('Delivered', 'Delivered')
     ]   
     
+    Order_status_choices = [
+        ('Cancelled', 'Cancelled'),
+        ('Booked', 'Booked'),
+    ]   
+    
+
 
     PAYMENT_METHOD_CHOICES = [
         ('UPI', 'UPI'),
@@ -196,6 +201,7 @@ class Order(models.Model):
     measurement_type = models.CharField(max_length=20, choices=MEASUREMENT_CHOICES)
     quantity = models.PositiveIntegerField(null=True, blank=True)   
     unit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    ton = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     contact_no = models.CharField(max_length=12,null=True,blank=True)
     delivery_address = models.TextField(null=True)
     qr_code = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
@@ -206,13 +212,15 @@ class Order(models.Model):
     pending_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     refunded_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     refunded_at = models.DateTimeField(null=True, blank=True)
+    refund_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='Cash')
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='Cash')
     payment_status = models.CharField(
         max_length=20,
         choices=PAYMENT_STATUS_CHOICES,
         default="Unpaid"
     )
-    delivery_status = models.CharField(max_length=10, choices=delivery_status_choices, default='Pending')
+    delivery_status = models.CharField(max_length=10, choices=delivery_status_choices, default='Exported')
+    order_status = models.CharField(max_length=10, choices=Order_status_choices, default='Booked')
     exported_at = models.DateTimeField(auto_now_add=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
     pass_no = models.IntegerField(null=True)
@@ -223,50 +231,14 @@ class Order(models.Model):
     created_by = models.ForeignKey(User, related_name='orders_created', on_delete=models.SET_NULL, null=True, blank=True)
     updated_by = models.ForeignKey(User, related_name='orders_updated', on_delete=models.SET_NULL, null=True, blank=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)  
+    # created_at = models.DateTimeField(auto_now_add=True)  
     updated_at = models.DateTimeField(auto_now=True) 
 
     
 
-    # def save(self, *args, **kwargs):
-
-    #     if self.pass_no and self.amount_per_pass:
-    #         self.pass_amount = self.pass_no * self.amount_per_pass
-    #     else:
-    #         self.pass_amount = 0
-        
-    #     if self.pass_no is not None and self.amount_per_pass is not None:
-    #         self.pass_amount = self.pass_no * self.amount_per_pass
-    #     else:
-    #         self.pass_amount = 0
-
-    #     super().save(*args, **kwargs)  
-    #     if not self.qr_code:
-           
-    #         base_url = "http://192.168.1.30:8000/scan_auto/"
-    #         qr_content = f"{base_url}?order_id={self.order_id}&amount={self.total_amount}"
-    #         print("✅ QR Content to encode:", qr_content) 
-
-           
-    #         qr = qrcode.make(qr_content)
-
-    #         # Save QR as Image
-    #         buffer = BytesIO()
-    #         qr.save(buffer, format="PNG")
-    #         filename = f"order_{self.order_id}.png"
-    #         self.qr_code.save(filename, File(buffer), save=False)
-
-    #         # Update only qr_code field
-    #         super().save(update_fields=["qr_code"])
-
-
     def process_refund(self, refund_amount: Decimal):
-        """
-        Refund logic:
-        - Refund only if order is Cancelled
-        - Auto update refund status & refunded_at
-        """
-        if self.order_status != "Cancelled":
+    
+        if self . delivery_status!= "Cancelled":
             raise ValueError("Refund allowed only if order is Cancelled")
 
         if refund_amount <= 0:
@@ -286,36 +258,58 @@ class Order(models.Model):
             self.payment_status = "Partially Refunded"
 
         self.save()
+    
+    def get_refund_status(self, obj):
+        paid = to_dec(obj.paid_amount)
+        refunded = to_dec(obj.refunded_amount)
 
+        if refunded == Decimal("0.00"):
+            return "Not Refunded"
+        elif refunded < paid:
+            return "Partially Refunded"
+        elif refunded == paid:
+            return "Fully Refunded"
+        return "Not Refunded"
     
     def save(self, *args, **kwargs):
-        is_new = self._state.adding  # True if object is being created
+        is_new = self._state.adding 
+        
+    
+        if self.delivery_status == "Delivered":
+            if not self.delivered_at:
+                self.delivered_at = timezone.now()
 
-        # Track old payment method before saving
-        if not is_new and self.pk:
-            old_payment_method = Order.objects.get(pk=self.pk).payment_method
-        else:
-            old_payment_method = None
+        if self.order_status == "Cancelled" and self.delivery_status == "Delivered":
+            raise ValueError("Delivered order cannot be cancelled.")
 
-        # Case 1: New order with Available Balance
-        if is_new and self.payment_method == "Available Balance":
-            self._deduct_available_balance()
+        if self.order_status == "Cancelled":
+            self.delivery_status = "Cancelled"
 
-        # Case 2: Updating order → changed to Available Balance
-        elif not is_new and self.payment_method == "Available Balance" and old_payment_method != "Available Balance":
-            self._deduct_available_balance()
-
-        # Calculate pass amount
         if self.pass_no and self.amount_per_pass:
             self.pass_amount = self.pass_no * self.amount_per_pass
         else:
             self.pass_amount = 0
 
+        if is_new:
+            if self.paid_amount > self.final_amount:
+                extra_amount = self.paid_amount - self.final_amount
+                self.pending_amount = 0
+             
+                if self.customer:  
+                    self.customer.available_balance += extra_amount
+                    self.customer.save(update_fields=["available_balance"])
+        else:
+            
+            if self.paid_amount > self.final_amount:
+                self.pending_amount = 0
+            else:
+                self.pending_amount = self.final_amount - self.paid_amount
+
         super().save(*args, **kwargs)
 
         # QR code generation (don’t deduct balance here)
         if not self.qr_code:
-            base_url = "https://spn-billing-software.onrender.com/scan_auto/"
+            base_url = "https://vallibricks.com/scan_auto/"
             qr_content = f"{base_url}?order_id={self.order_id}&amount={self.total_amount}"
             qr = qrcode.make(qr_content)
 
@@ -324,7 +318,13 @@ class Order(models.Model):
             filename = f"order_{self.order_id}.png"
             self.qr_code.save(filename, File(buffer), save=False)
             super().save(update_fields=["qr_code"])
-
+   
+   
+    def delete(self, *args, **kwargs):
+        print(f"Deleting order {self.order_id} and its related transactions")
+        self.transactions.all().delete()
+        self.scans.all().delete()
+        super().delete(*args, **kwargs)
 
     def _deduct_available_balance(self):
         """Helper to deduct available balance safely"""
@@ -339,8 +339,8 @@ class Order(models.Model):
         self.pending_amount = 0
 
 
-    # def __str__(self):
-    #     return f"Order {self.id} - {self.customer.name}"
+    def __str__(self):
+        return f"Order {self.id} - {self.customer.name}"
     
 
 
@@ -363,10 +363,14 @@ class Transaction(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="transactions", null=True, blank=True)
     reference = models.CharField(max_length=20, null=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2,null=True)
     paid_amount = models.DecimalField(max_digits=10, decimal_places=2)
     pending_amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='Cash')  
+    transaction_type = models.CharField(
+        max_length=50,
+        choices=(('order_payment', 'Order Payment'), ('pending_clearance', 'Pending Clearance'))
+    )
     created_by = models.ForeignKey(User, related_name='transactions_created', on_delete=models.SET_NULL, null=True, blank=True)
     updated_by = models.ForeignKey(User, related_name='transactions_updated', on_delete=models.SET_NULL, null=True, blank=True)
     paid_at = models.DateTimeField(auto_now_add=True)  
@@ -375,3 +379,27 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"Transaction {self.id} - {self.customer.name}"
+        
+
+class ScanReport(models.Model):
+    device_id = models.CharField(max_length=255)
+    total_scans = models.PositiveIntegerField(default=0)
+    last_scanned_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Scan Report"
+        verbose_name_plural = "Scan Reports"
+
+    def __str__(self):
+        return f"Report for Device {self.device_id}"
+
+    def update_report(self):
+        """Recalculate total scans and last scan time from ScanLog."""
+        logs = ScanLog.objects.filter(device_id=self.device_id)
+        self.total_scans = logs.count()
+        last = logs.order_by('-scanned_at').first()
+        self.last_scanned_at = last.scanned_at if last else None
+        self.save()
+
+    
+

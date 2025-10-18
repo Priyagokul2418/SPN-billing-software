@@ -105,28 +105,36 @@ DATABASES = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  
-     "http://localhost:5174"
+     "http://localhost:5174",
+      "http://localhost:5175"
 ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "10.205.166.96",
     "10.251.118.96",
-    "192.168.1.2",
+    "192.168.1.6",
+    "10.102.53.96",
     "testserver",
     "13.228.225.19",
     "18.142.128.26",
     "54.254.162.138",
     "10.83.137.96",
     "spn-billing-software.onrender.com",
+    "reiosglobal.com", 
+    "www.reiosglobal.com",
     # "192.168.1.27",
     # "192.168.1.5", 
     # "110.251.118.96" 
 ]
 
 REST_FRAMEWORK = {
-    "DATETIME_FORMAT": "%d-%m-%Y %I:%M %p"  # 12-hour with AM/PM
+    "DATETIME_FORMAT": "%d-%m-%Y %I:%M %p",
+    # "DEFAULT_AUTHENTICATION_CLASSES": (
+    #     "rest_framework_simplejwt.authentication.JWTAuthentication",
+    # ),
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -163,6 +171,7 @@ USE_I18N = True
 USE_TZ = True
 
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
@@ -179,9 +188,63 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "gokulpriya391@gmail.com"
-EMAIL_HOST_PASSWORD = "tguc joyd vxge qkck" 
+
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "smtp.gmail.com"
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = "gokulpriya391@gmail.com"
+# EMAIL_HOST_PASSWORD = "tguc joyd vxge qkck" 
+
+
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'mail.reiosglobal.com'
+# EMAIL_PORT = 465
+# EMAIL_USE_SSL = True  # Use SSL for port 465
+# EMAIL_USE_TLS = False  # Do not enable TLS if using SSL
+# EMAIL_HOST_USER = '_mainaccount@reiosglobal.com'  # Full email address
+# EMAIL_HOST_PASSWORD = 'Reios202$'  # Email account password
+
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtpout.secureserver.net'
+# EMAIL_PORT = 465
+# EMAIL_USE_SSL = True
+# EMAIL_USE_TLS = False
+# EMAIL_HOST_USER = 'spn@vallibricks.com'
+# EMAIL_HOST_PASSWORD = 'spnVallibricks@123'
+# DEFAULT_FROM_EMAIL = 'spn@vallibricks.com'
+# EMAIL_TIMEOUT = 10
+
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_USE_SSL = True
+# EMAIL_PORT = 465
+# EMAIL_HOST = '70c.dbe.mytemp.website'
+# EMAIL_HOST_USER = 'vallibricks@70c.dbe.mytemp.website'
+# EMAIL_HOST_PASSWORD = 'Vallibricks@123'
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# EMAIL_TIMEOUT = 10
+
+
+# settings.py
+
+# Email Configuration (using the same settings that worked in test)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mail.vallibricks.com'
+EMAIL_PORT = 465  # Using port 465 which worked in your test
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True  # Important: Use SSL for port 465
+EMAIL_HOST_USER = 'spn@vallibricks.com'
+EMAIL_HOST_PASSWORD = 'spnVallibricks@123'  # Your working password
+DEFAULT_FROM_EMAIL = 'spn@vallibricks.com'
+SERVER_EMAIL = 'spn@vallibricks.com'
+
+# Optional: Increase timeout
+EMAIL_TIMEOUT = 30

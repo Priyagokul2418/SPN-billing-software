@@ -1,0 +1,15 @@
+{
+    "order_id": 191,
+    "payment_method": "Cash",
+    "customer_name": "பாலா",
+    "city": "tenaksi",
+    "product_name": "சிமெண்ட்",
+    "category": "கான்கிரீட் சிமெண்ட்",
+    "quantity": 12,
+    "final_amount": "14750.00",
+    "paid_amount": "14730.00",
+    "pending_amount": "20.00",
+    "payment_status": "Pending",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_191_yroXm5W.png"
+}

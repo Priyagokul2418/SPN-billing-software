@@ -1,0 +1,15 @@
+{
+    "order_id": 189,
+    "payment_method": "UPI",
+    "customer_name": "demo user",
+    "city": null,
+    "product_name": "Sand",
+    "category": "M-மணல் (M-Sand)",
+    "quantity": "1.00",
+    "final_amount": "20388.00",
+    "paid_amount": "1222.00",
+    "pending_amount": "19166.00",
+    "payment_status": "Pending",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_189_cw3XRQF.png"
+}

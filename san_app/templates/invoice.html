@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: "Noto Sans Tamil", sans-serif; }
+    h1 { font-size: 20px; }
+    p { font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>ஆர்டர் ரசீது - #{{ order.order_id }}</h1>
+
+  <h3>வாடிக்கையாளர் தகவல்</h3>
+  <p>பெயர்: {{ order.customer.name }}</p>
+  <p>மொபைல்: {{ order.customer.mobile }}</p>
+  <p>முகவரி: {{ order.delivery_address }}</p>
+
+  <h3>பொருள் & ஆர்டர் விவரம்</h3>
+  <p>பொருள் பெயர்: {{ order.product.product_name }}</p>
+  <p>அளவு: {{ order.quantity }}</p>
+  <p>மொத்த தொகை: ₹{{ order.total_amount }}</p>
+  <p>இறுதி தொகை: ₹{{ order.final_amount }}</p>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+    "order_id": 200,
+    "payment_method": "Cash",
+    "customer_name": "raju",
+    "city": "Chennai",
+    "product_name": "cement",
+    "category": "congrete cement",
+    "quantity": "3.00",
+    "final_amount": "13900.00",
+    "paid_amount": "1000.00",
+    "pending_amount": "12900.00",
+    "payment_status": "Pending",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_200_H00iBfC.png"
+}

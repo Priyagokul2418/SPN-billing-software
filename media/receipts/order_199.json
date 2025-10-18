@@ -1,0 +1,15 @@
+{
+    "order_id": 199,
+    "payment_method": "Cash",
+    "customer_name": "raju",
+    "city": "Chennai",
+    "product_name": "சிமெண்ட்",
+    "category": "congrete cement",
+    "quantity": "3.00",
+    "final_amount": "4060.00",
+    "paid_amount": "1000.00",
+    "pending_amount": "3060.00",
+    "payment_status": "Pending",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_199_yPfHGCW.png"
+}

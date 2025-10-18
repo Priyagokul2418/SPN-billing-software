@@ -1,0 +1,15 @@
+{
+    "order_id": 190,
+    "payment_method": "Cash",
+    "customer_name": "பாலா",
+    "city": "tenaksi",
+    "product_name": "cement",
+    "category": "congrete cement",
+    "quantity": "22.00",
+    "final_amount": "124650.00",
+    "paid_amount": "124650.00",
+    "pending_amount": "0.00",
+    "payment_status": "Paid",
+    "operator": "SPN",
+    "qr_code_url": "http://testserver/media/qrcodes/order_190_j19naOr.png"
+}
